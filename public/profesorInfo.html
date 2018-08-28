@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<!--
+This is a starter template page. Use this page to start your new project from
+scratch. This page gets rid of all links and provides the needed markup only.
+-->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Admin</title>
+
+  <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase-messaging.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase-functions.js"></script>
+
+
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="bower_components/Ionicons/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="dist/css/AdminLTE.min.css">
+  <link rel="stylesheet" href="dist/css/stylesAdmin.css">
+  <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
+        page. However, you can choose any other skin. Make sure you
+        apply the skin class to the body tag so the changes take effect. -->
+  <link rel="stylesheet" href="dist/css/skins/skin-blue.min.css">
+  <!-- bootstrap wysihtml5 - text editor -->
+  <link rel="stylesheet" href="plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css">
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+  <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase.js"></script>
+
+  <!-- Google Font -->
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+</head>
+<!--
+BODY TAG OPTIONS:
+=================
+Apply one or more of the following classes to get the
+desired effect
+|---------------------------------------------------------|
+| SKINS         | skin-blue                               |
+|               | skin-black                              |
+|               | skin-purple                             |
+|               | skin-yellow                             |
+|               | skin-red                                |
+|               | skin-green                              |
+|---------------------------------------------------------|
+|LAYOUT OPTIONS | fixed                                   |
+|               | layout-boxed                            |
+|               | layout-top-nav                          |
+|               | sidebar-collapse                        |
+|               | sidebar-mini                            |
+|---------------------------------------------------------|
+-->
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper">
+
+  <!-- Main Header -->
+  <header class="main-header">
+
+    <!-- Logo -->
+    <a href="index2.html" class="logo">
+      <!-- mini logo for sidebar mini 50x50 pixels -->
+      <span class="logo-mini"><b>A</b>BT</span>
+      <!-- logo for regular state and mobile devices -->
+      <span class="logo-lg"><b>Admin</b>BODYTECH</span>
+    </a>
+
+    <!-- Header Navbar -->
+    <nav class="navbar navbar-static-top" role="navigation">
+      <!-- Sidebar toggle button-->
+      <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+        <span class="sr-only">Toggle navigation</span>
+      </a>
+
+
+    </nav>
+  </header>
+  <!-- Left side column. contains the logo and sidebar -->
+  <aside class="main-sidebar">
+
+    <!-- sidebar: style can be found in sidebar.less -->
+    <section class="sidebar">
+
+      <!-- Sidebar user panel (optional) -->
+      <div class="user-panel">
+        <div class="pull-left image">
+          <img src="dist/img/avatar.png" class="img-circle" alt="User Image">
+        </div>
+        <div class="pull-left info">
+          <p>SuperAdmin</p>
+          <!-- Status -->
+          <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+        </div>
+      </div>
+
+
+      <!-- Sidebar Menu -->
+      <ul class="sidebar-menu" data-widget="tree">
+        <li class="header">SECCIONES</li>
+        <!-- Optionally, you can add icons to the links -->
+        <li><a href="starter.html"><i class="fa fa-link"></i> <span>Index</span></a></li>
+        <li><a href="paises.html"><i class="fa fa-link"></i> <span>Países</span></a></li>
+        <li><a href="regiones.html"><i class="fa fa-link"></i> <span>Regiones</span></a></li>
+        <li><a href="ciudades.html"><i class="fa fa-link"></i> <span>Ciudades</span></a></li>
+        <li><a href="sedes.html"><i class="fa fa-link"></i> <span>Sedes</span></a></li>
+        <li><a href="salones.html"><i class="fa fa-link"></i> <span>Salones</span></a></li>
+        <li><a href="clases.html"><i class="fa fa-link"></i> <span>Clases</span></a></li>
+        <li class="active"><a href=""><i class="fa fa-link"></i> <span>Profesores</span></a></li>
+
+      </ul>
+      <!-- /.sidebar-menu -->
+    </section>
+    <!-- /.sidebar -->
+  </aside>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1 id="name_title">
+
+
+      </h1>
+
+      <ol class="breadcrumb">
+              <li><a href="profesores.html"><i class="fa fa-link"></i> todos los profesores</a></li>
+              <li><a onclick="gotoProfesor()" ><i class="fa fa-link"></i>profesor actual</a></li>
+              <li class="active">profesor info</li>
+            </ol>
+
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
+
+      <!-- /.modal -->
+      <div class="modal fade in" id="myModal" style="display: none;">
+          <div class="modal-dialog">
+              <!-- /.modal-content -->
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">×</span></button>
+                      <h4 class="modal-title">Asignar clase</h4>
+                  </div>
+                  <div class="modal-body">
+
+
+                    <div class="form-group">
+                        <label>De que País</label>
+                        <select class="form-control" id="item_link_pais">
+
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>De que Ciudad</label>
+                        <select class="form-control" id="item_link_ciudad">
+
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>De que sede</label>
+                        <select class="form-control" id="item_link_sede">
+
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>En que salón</label>
+                        <select class="form-control" id="item_link_salon">
+
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Que clase</label>
+                        <select class="form-control" id="item_link_clase">
+
+                        </select>
+                    </div>
+
+
+                  </div>
+
+
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-primary" onclick="save()">Guardar</button>
+                  </div>
+              </div>
+              <!-- /.modal-content -->
+          </div>
+          <!-- /.modal-dialog -->
+      </div>
+      <!--close /.modal -->
+
+      <div class="box">
+
+      <table class="table table-bordered table-striped">
+          <tbody id="bodyTable">
+          <tr>
+              <th>fecha</th>
+              <th>Clase</th>
+              <th>Asistentes</th>
+
+          </tr>
+          </tbody>
+      </table>
+    </div>
+
+
+    </section>
+    <!-- /.content -->
+
+
+  </div>
+  <!-- /.content-wrapper -->
+
+
+</div>
+<!-- ./wrapper -->
+
+<!-- REQUIRED JS SCRIPTS -->
+
+<!-- jQuery 3 -->
+<script src="bower_components/jquery/dist/jquery.min.js"></script>
+<!-- Bootstrap 3.3.7 -->
+<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<!-- FastClick -->
+<script src="bower_components/fastclick/lib/fastclick.js"></script>
+<!-- AdminLTE App -->
+<script src="dist/js/adminlte.min.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="dist/js/demo.js"></script>
+<!-- CK Editor -->
+<script src="bower_components/ckeditor/ckeditor.js"></script>
+<!-- Bootstrap WYSIHTML5 -->
+<script src="plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js"></script>
+<script>
+//GET PARAMS
+var getUrlParameter = function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
+
+
+    // Initialize Firebase
+    var config = {
+        apiKey: "AIzaSyBId7XZ1vDLRaG9VcS8GkElSBEmq3YCCTk",
+        authDomain: "bodycams-1aadf.firebaseapp.com",
+        databaseURL: "https://bodycams-1aadf.firebaseio.com",
+        projectId: "bodycams-1aadf",
+        storageBucket: "bodycams-1aadf.appspot.com",
+        messagingSenderId: "729988944842"
+    };
+
+
+    firebase.initializeApp(config);
+    var db = firebase.firestore();
+
+    const settings = {/* your settings... */ timestampsInSnapshots: true};
+    db.settings(settings);
+
+    var docRefActual = db.collection('profesores')
+    var docRefContent = db.collection('ciudades')
+
+    var docRefSedes = db.collection('sedes')
+    var docRefPais = db.collection('paises')
+    var docRefCiudad = db.collection('ciudades')
+    var docRefSalon = db.collection('salones')
+    var docRefClase = db.collection('clases')
+
+    var myID = getUrlParameter('id');
+    var heID = getUrlParameter('id2');
+
+
+
+    $(document).ready(function ()
+    {
+
+
+
+      docRefActual.doc(heID).get()
+      .then(function(doc) {
+          if (doc.exists) {
+            console.log(doc.data())
+              $('#name_title').html(doc.data().nombre+'<small>asistencias</small>')
+          } else {
+              // doc.data() will be undefined in this case
+              console.log("No such document!");
+          }
+      }).catch(function(error) {
+          console.log("Error getting document:", error);
+      });
+
+    //load
+    console.log("heID", heID)
+    console.log("myID", myID)
+
+    docRefActual.doc(heID).collection("clases").doc(myID).collection("asistencias").get()
+    .then(function(querySnapshot) {
+        querySnapshot.forEach(function(doc) {
+
+            var myId = doc.id
+            console.log(doc.data().fecha)
+
+            var fecha = new Date(doc.data().fecha);
+            var finalDate = (fecha.getDate())+"/"+(fecha.getMonth()+1)+"/"+fecha.getFullYear();
+            console.log("::",finalDate)
+
+            var _title = doc.data().fecha
+            var _clase = doc.data().clase
+            var _asistentes = doc.data().asistentes
+
+
+            var div = '<tr>\n' +
+                '                            <td>'+_title+'</td>\n' +
+                '                            <td>'+_clase+'</td>\n' +
+                '                            <td>'+_asistentes+'</td>\n' +
+
+                '                            </tr>'
+
+            $("#bodyTable").append(div)
+
+
+        });
+
+      })
+
+      //load countries
+      docRefPais.get().then(function(querySnapshot) {
+        $("#item_link_pais").append('<option value="noSeleccionado">Selecciona</option>')
+          querySnapshot.forEach(function(doc) {
+
+              var _title = doc.data().nombre
+
+              var _fullTitle = _title
+
+              var _id = doc.id
+
+              var div = '<option value="'+_id+'">'+_title+'</option>'
+
+              $("#item_link_pais").append(div)
+              //console.log("value: ",$("#item_link").val());
+
+          });
+      });
+
+    })
+
+    //view
+    function enterMe(_this) {
+
+      window.location.href = "profesorInfo.html?id="+_this.dataset.capture
+
+    }
+
+    function gotoProfesor()
+    {
+      window.location.href = "profesor.html?id="+heID
+    }
+
+    //save
+    function save()
+    {
+
+      var _item_ciudad = $( "#item_link_ciudad option:selected" ).text();
+      var _item_ciudad_id = $("#item_link_ciudad").val()
+      var _item_pais = $( "#item_link_pais option:selected" ).text();
+      var _item_pais_id = $("#item_link_pais").val()
+      var _item_salon = $( "#item_link_salon option:selected" ).text();
+      var _item_salon_id = $("#item_link_salon").val()
+      var _item_clase = $( "#item_link_clase option:selected" ).text();
+      var _item_clase_id = $("#item_link_clase").val()
+
+
+        docRefActual.doc(myID).collection("clases").add({
+
+            ciudad:_item_ciudad,
+            ciudad_id:_item_ciudad_id,
+            pais:_item_pais,
+            pais_id:_item_pais_id,
+            salon:_item_salon,
+            salon_id:_item_salon_id,
+            clase:_item_clase,
+            clase_id:_item_clase_id
+
+
+            }).then(function(docRef) {
+
+                window.location.reload()
+            })
+            .catch(function(error) {
+                console.error("Error writing document: ", error);
+            })
+    }
+
+    //delete
+    function deleteMe(_this) {
+
+        if (confirm('¿Estas seguro que quieres borrar este item?')) {
+            docRefActual.doc(myID).collection("clases").doc(_this.dataset.capture).delete().then(function() {
+                console.log("Document successfully deleted!");
+                window.location.reload()
+            }).catch(function(error) {
+                console.error("Error removing document: ", error);
+            });
+        } else {
+
+
+        }
+    }
+
+    //edit
+    function editMe(_this) {
+
+      docRefActual.doc(myID).collection("clases").doc(_this.dataset.capture).get().then(function(doc) {
+          if (doc.exists) {
+              $('#myModal').modal('show');
+
+
+          } else {
+              // doc.data() will be undefined in this case
+              console.log("No such document!");
+          }
+      }).catch(function(error) {
+          console.log("Error getting document:", error);
+      });
+
+    }
+
+    function clearFields()
+    {
+
+    }
+
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            // User is signed in.
+            console.log(user)
+
+            // ...
+        } else {
+            // User is signed out.
+            console.log("no user")
+            window.location.href = "login.html"
+            // ...
+        }
+    });
+
+
+
+
+
+
+</script>
+
+<!-- Optionally, you can add Slimscroll and FastClick plugins.
+     Both of these plugins are recommended to enhance the
+     user experience. -->
+</body>
+</html>
