@@ -154,8 +154,22 @@ desired effect
                         <input id="country_txt" type="text" placeholder="Sede" class="text-fluid">
 
                         <div class="form-group">
-                            <label>De que ciudad</label>
-                            <select class="form-control" id="item_link">
+                            <label>De que País</label>
+                            <select class="form-control" id="item_pais">
+
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>De que Región</label>
+                            <select class="form-control" id="item_region">
+
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>De que Ciudad</label>
+                            <select class="form-control" id="item_ciudad">
 
                             </select>
                         </div>
@@ -250,15 +264,80 @@ desired effect
     const settings = {/* your settings... */ timestampsInSnapshots: true};
     db.settings(settings);
 
-    var docRefSede = db.collection('sedes')
-    var docRefCity = db.collection('ciudades')
+    var docRefPais = db.collection('paises')
+    var docRefSedes = db.collection('sedes')
+    var docRefCiudad = db.collection('ciudades')
+    var docRefPaises = db.collection('paises')
+    var docRefRegiones = db.collection('regiones')
 
 
     $(document).ready(function ()
     {
 
+      $('#item_pais').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_pais option:selected" ).text()
+        $("#item_region")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_ciudad")
+        .find('option')
+        .remove()
+        .end()
+
+
+
+        docRefRegiones.where("pais", "==", _item_link).get().then(function(querySnapshot) {
+
+            $("#item_region").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for query doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+                var _title = doc.data().nombre
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_region").append(div)
+                //console.log("value: ",$("#item_pais").val());
+
+            });
+
+        });
+      });
+
+      $('#item_region').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_region option:selected" ).text()
+        $("#item_ciudad")
+        .find('option')
+        .remove()
+        .end()
+        docRefCiudad.where("region", "==", _item_link).get().then(function(querySnapshot) {
+          $("#item_ciudad").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for query doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+
+                var _title = doc.data().nombre
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_ciudad").append(div)
+                //console.log("value: ",$("#item_pais").val());
+
+            });
+        });
+      });
+
+
+
+
     //load
-    docRefSede.orderBy("pais", "asc").get().then(function(querySnapshot) {
+    docRefSedes.orderBy("pais", "asc").get().then(function(querySnapshot) {
         querySnapshot.forEach(function(doc) {
 
             var myId = doc.id
@@ -289,19 +368,19 @@ desired effect
       })
 
       //load countries
-      docRefCity.get().then(function(querySnapshot) {
+      docRefPais.get().then(function(querySnapshot) {
+        $("#item_pais").append('<option value="noSeleccionado">Selecciona</option>')
           querySnapshot.forEach(function(doc) {
               // doc.data() is never undefined for query doc snapshots
               //console.log(doc.id, " => ", doc.data());
 
               var _title = doc.data().nombre
               var _id = doc.id
-              var _country = doc.data().pais
-              var _fullTitle = _title +"-"+ _country
-              var div = '<option value="'+_id+'">'+_fullTitle+'</option>'
 
-              $("#item_link").append(div)
-              //console.log("value: ",$("#item_link").val());
+              var div = '<option value="'+_id+'">'+_title+'</option>'
+
+              $("#item_pais").append(div)
+              //console.log("value: ",$("#item_pais").val());
 
           });
       });
@@ -313,18 +392,28 @@ desired effect
     function save()
     {
       var _sede = $('#country_txt').val()
-      var _item_link = $( "#item_link option:selected" ).text().split("-");
-      var _city = _item_link[0]
-      var _cou = _item_link[1]
-      var _cat = $( "#item_cat option:selected" ).text()
-      var _item_link_id = $("#item_link").val()
 
-        docRefSede.add({
+      var _item_pais = $( "#item_pais option:selected" ).text();
+      var _item_pais_id = $("#item_pais").val()
+      var _item_region = $( "#item_region option:selected" ).text();
+      var _item_region_id = $("#item_region").val()
+      var _item_ciudad = $( "#item_ciudad option:selected" ).text();
+      var _item_ciudad_id = $( "#item_ciudad" ).val();
+      var _item_cat = $( "#item_cat option:selected" ).text();
+      var _item_cat_id = $( "#item_cat" ).val();
+
+
+        docRefSedes.add({
             nombre:_sede,
-            ciudad:_city,
-            ciudad_id:_item_link_id,
-            categoria:_cat,
-            pais:_cou
+
+            pais:     _item_pais,
+            pais_id:  _item_pais_id,
+            region:   _item_region,
+            region_id:_item_region_id,
+            ciudad:   _item_ciudad,
+            ciudad_id:_item_ciudad_id,
+            categoria:   _item_cat,
+            categoria_id:_item_cat_id
 
 
             }).then(function(docRef) {
@@ -340,7 +429,7 @@ desired effect
     function deleteMe(_this) {
 
         if (confirm('¿Estas seguro que quieres borrar este item?')) {
-            docRefSede.doc(_this.dataset.capture).delete().then(function() {
+            docRefSedes.doc(_this.dataset.capture).delete().then(function() {
                 console.log("Document successfully deleted!");
                 window.location.reload()
             }).catch(function(error) {

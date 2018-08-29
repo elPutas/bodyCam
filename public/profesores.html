@@ -155,8 +155,22 @@ desired effect
                         <input id="name_txt" type="text" placeholder="Nombre" class="text-fluid">
                         <input id="cc_txt" type="number" placeholder="Cédula" class="text-fluid">
                         <div class="form-group">
-                            <label>De que ciudad</label>
-                            <select class="form-control" id="item_link">
+                            <label>De que País</label>
+                            <select class="form-control" id="item_pais">
+
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>De que Región</label>
+                            <select class="form-control" id="item_region">
+
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>De que Ciudad</label>
+                            <select class="form-control" id="item_ciudad">
 
                             </select>
                         </div>
@@ -242,9 +256,79 @@ desired effect
     var docRefActual = db.collection('profesores')
     var docRefContent = db.collection('ciudades')
 
+    var docRefPais = db.collection('paises')
+    var docRefRegiones = db.collection('regiones')
+    var docRefCiudad = db.collection('ciudades')
+
 
     $(document).ready(function ()
     {
+
+
+      $('#item_pais').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_pais option:selected" ).text()
+        $("#item_region")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_ciudad")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_sede")
+        .find('option')
+        .remove()
+        .end()
+
+
+        docRefRegiones.where("pais", "==", _item_link).get().then(function(querySnapshot) {
+
+            $("#item_region").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for query doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+                var _title = doc.data().nombre
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_region").append(div)
+                //console.log("value: ",$("#item_pais").val());
+
+            });
+
+        });
+      });
+
+      $('#item_region').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_region option:selected" ).text()
+        $("#item_ciudad")
+        .find('option')
+        .remove()
+        .end()
+        docRefCiudad.where("region", "==", _item_link).get().then(function(querySnapshot) {
+          $("#item_ciudad").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for query doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+
+                var _title = doc.data().nombre
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_ciudad").append(div)
+                //console.log("value: ",$("#item_pais").val());
+
+            });
+        });
+      });
+
+
 
     //load
     docRefActual.get().then(function(querySnapshot) {
@@ -275,22 +359,19 @@ desired effect
       })
 
       //load countries
-      docRefContent.get().then(function(querySnapshot) {
+      docRefPais.get().then(function(querySnapshot) {
+        $("#item_pais").append('<option value="noSeleccionado">Selecciona</option>')
           querySnapshot.forEach(function(doc) {
               // doc.data() is never undefined for query doc snapshots
               //console.log(doc.id, " => ", doc.data());
 
               var _title = doc.data().nombre
-              var _time = doc.data().h_inicio
-
-              var _fullTitle = _title + " de " + _time
-
               var _id = doc.id
 
               var div = '<option value="'+_id+'">'+_title+'</option>'
 
-              $("#item_link").append(div)
-              //console.log("value: ",$("#item_link").val());
+              $("#item_pais").append(div)
+              //console.log("value: ",$("#item_pais").val());
 
           });
       });
@@ -302,15 +383,25 @@ desired effect
     function save()
     {
       var _nombre = $('#name_txt').val()
-      var _item_link = $( "#item_link option:selected" ).text();
-      var _item_link_id = $("#item_link").val()
       var _cc = $("#cc_txt").val()
+
+      var _item_pais = $( "#item_pais option:selected" ).text();
+      var _item_pais_id = $("#item_pais").val()
+      var _item_region = $( "#item_region option:selected" ).text();
+      var _item_region_id = $("#item_region").val()
+      var _item_ciudad = $( "#item_ciudad option:selected" ).text();
+      var _item_ciudad_id = $( "#item_ciudad" ).val();
 
         docRefActual.add({
             nombre:_nombre,
-            ciudad:_item_link,
-            ciudad_id:_item_link_id,
-            cc:_cc
+            cc:_cc,
+
+            pais:     _item_pais,
+            pais_id:  _item_pais_id,
+            ciudad:   _item_ciudad,
+            ciudad_id:_item_ciudad_id,
+            region:   _item_region,
+            region_id:_item_region_id
 
             }).then(function(docRef) {
 

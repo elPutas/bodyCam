@@ -20,10 +20,16 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <!-- jQuery 3 -->
+  <script src="bower_components/jquery/dist/jquery.min.js"></script>
   <!-- Font Awesome -->
   <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
   <!-- Ionicons -->
   <link rel="stylesheet" href="bower_components/Ionicons/css/ionicons.min.css">
+  <!-- ChartJS -->
+  <script src="bower_components/chart.js/Chart.js"></script>
+  <!-- Sparkline -->
+  <script src="bower_components/jquery-sparkline/dist/jquery.sparkline.min.js"></script>
   <!-- Theme style -->
   <link rel="stylesheet" href="dist/css/AdminLTE.min.css">
   <link rel="stylesheet" href="dist/css/stylesAdmin.css">
@@ -140,13 +146,58 @@ desired effect
     <section class="content container-fluid">
 
       <div class="row">
+        <div class="form-group col-md-2">
+            <label>País</label>
+            <select class="form-control" id="item_pais">
+
+            </select>
+        </div>
+
+        <div class="form-group col-md-2">
+            <label>Región</label>
+            <select class="form-control" id="item_region">
+
+            </select>
+        </div>
+
+        <div class="form-group col-md-2">
+            <label>Ciudad</label>
+            <select class="form-control" id="item_ciudad">
+
+            </select>
+        </div>
+
+        <div class="form-group col-md-2">
+            <label>Sede</label>
+            <select class="form-control" id="item_sede">
+
+            </select>
+        </div>
+
+        <div class="form-group col-md-2">
+            <label>Salón</label>
+            <select class="form-control" id="item_salon">
+
+            </select>
+        </div>
+
+        <div class="form-group col-md-2">
+            <label>Clase</label>
+            <select class="form-control" id="item_clase">
+
+            </select>
+        </div>
+      </div>
+
+
+      <div class="row">
         <div class="col-lg-3 col-xs-6">
           <!-- small box -->
           <div class="small-box bg-aqua">
             <div class="inner">
-              <h3>150</h3>
+              <h3 id="clases_creadas">0</h3>
 
-              <p>USUARIOS TOTALES EN SALAS</p>
+              <p>CLASES TOTALES CREADAS</p>
             </div>
             <div class="icon">
               <i class="ion ion-bag"></i>
@@ -174,9 +225,9 @@ desired effect
           <!-- small box -->
           <div class="small-box bg-yellow">
             <div class="inner">
-              <h3>44</h3>
+              <h3 id="num_profesores">0</h3>
 
-              <p>ABANDONOS TOTALES</p>
+              <p>PROFESORES TOTALES</p>
             </div>
             <div class="icon">
               <i class="ion ion-person-add"></i>
@@ -203,7 +254,64 @@ desired effect
       </div>
 
 
+      <!-- TABLE: LATEST ORDERS -->
+      <div class="box box-info">
+        <div class="box-header with-border">
+          <h3 class="box-title">Clases por asistencias</h3>
 
+          <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+            </button>
+            <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+          </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+          <div class="table-responsive">
+            <table class="table no-margin">
+              <thead>
+              <tr>
+                <th>País</th>
+                <th>Región</th>
+                <th>Ciudad</th>
+                <th>Sede</th>
+                <th>Salón</th>
+                <th>Clase</th>
+                <th style="width: 300px">Asistencia</th>
+              </tr>
+              </thead>
+              <tbody id="bodyTable">
+
+              </tbody>
+            </table>
+          </div>
+          <!-- /.table-responsive -->
+        </div>
+        <!-- /.box-body -->
+
+      </div>
+      <!-- /.box -->
+
+
+      <div class="box-body">
+        <div class="row">
+          <div class="col-md-8">
+            <p class="text-center">
+              <strong>Sales: 1 Jan, 2014 - 30 Jul, 2014</strong>
+            </p>
+
+            <div class="chart">
+              <!-- Sales Chart Canvas -->
+              <canvas id="salesChart" style="height: 180px;"></canvas>
+            </div>
+            <!-- /.chart-responsive -->
+          </div>
+          <!-- /.col -->
+          
+          <!-- /.col -->
+        </div>
+        <!-- /.row -->
+      </div>
 
 
 
@@ -235,10 +343,12 @@ desired effect
 <script src="dist/js/adminlte.min.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="dist/js/demo.js"></script>
-<!-- CK Editor -->
-<script src="bower_components/ckeditor/ckeditor.js"></script>
 <!-- Bootstrap WYSIHTML5 -->
 <script src="plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js"></script>
+<!-- Sparkline -->
+<script src="bower_components/jquery-sparkline/dist/jquery.sparkline.min.js"></script>
+<!-- ChartJS -->
+<script src="bower_components/chart.js/Chart.js"></script>
 <script>
 
 
@@ -259,6 +369,22 @@ desired effect
     const settings = {/* your settings... */ timestampsInSnapshots: true};
     db.settings(settings);
 
+    var docRefPais = db.collection('paises')
+    var docRefRegiones = db.collection('regiones')
+    var docRefCiudad = db.collection('ciudades')
+    var docRefSedes = db.collection('sedes')
+    var docRefSalon = db.collection('salones')
+    var docRefClase = db.collection('clases')
+    var docRefProfesor = db.collection('profesores')
+
+    var paisSelected = ""
+    var regionSelected = ""
+    var ciudadSelected = ""
+    var sedeSelected = ""
+    var salonSelected = ""
+    var claseSelected = ""
+    var profesorSelected = ""
+
 
     firebase.auth().onAuthStateChanged(function(user) {
         if (user) {
@@ -274,6 +400,392 @@ desired effect
         }
     });
 
+    $(document).ready(function()
+    {
+      stats()
+
+
+      $('#item_pais').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_pais option:selected" ).text()
+        paisSelected = _item_link
+        regionSelected = ""
+        ciudadSelected = ""
+        sedeSelected = ""
+        salonSelected = ""
+        claseSelected = ""
+
+
+
+        $("#bodyTable")
+        .find('td')
+        .remove()
+        .end()
+
+        $("#item_region")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_ciudad")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_sede")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_salon")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_clase")
+        .find('option')
+        .remove()
+        .end()
+
+        stats()
+
+
+        docRefRegiones.where("pais", "==", _item_link).get().then(function(querySnapshot) {
+
+            $("#item_region").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for queryClases doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+                var _title = doc.data().nombre
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_region").append(div)
+                //console.log("value: ",$("#item_pais").val());
+
+            });
+
+        });
+      });
+
+      $('#item_region').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_region option:selected" ).text()
+        regionSelected = _item_link
+        ciudadSelected = ""
+        sedeSelected = ""
+        salonSelected = ""
+        claseSelected = ""
+
+
+        $("#bodyTable")
+        .find('td')
+        .remove()
+        .end()
+
+        $("#item_ciudad")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_sede")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_salon")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_clase")
+        .find('option')
+        .remove()
+        .end()
+
+        stats()
+        docRefCiudad.where("region", "==", _item_link).get().then(function(querySnapshot) {
+          $("#item_ciudad").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for queryClases doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+
+                var _title = doc.data().nombre
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_ciudad").append(div)
+                //console.log("value: ",$("#item_pais").val());
+
+            });
+        });
+      });
+
+      $('#item_ciudad').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_ciudad option:selected" ).text()
+        ciudadSelected = _item_link
+        sedeSelected = ""
+        salonSelected = ""
+        claseSelected = ""
+
+
+        $("#item_sede")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_salon")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_clase")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#bodyTable")
+        .find('option')
+        .remove()
+        .end()
+
+        stats()
+
+        docRefSedes.where("ciudad", "==", _item_link).get().then(function(querySnapshot) {
+          $("#item_sede").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for queryClases doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+
+                var _title = doc.data().nombre
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_sede").append(div)
+                //console.log("value: ",$("#item_pais").val());
+
+            });
+        });
+      });
+
+      $('#item_sede').on('change', function() {
+        //load sedes
+        var _item_link = $( "#item_sede option:selected" ).text()
+
+        sedeSelected = _item_link
+        salonSelected = ""
+        claseSelected = ""
+
+
+        $("#item_salon")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_clase")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#bodyTable")
+        .find('option')
+        .remove()
+        .end()
+
+        stats()
+
+        docRefSalon.where("sede", "==", _item_link).get().then(function(querySnapshot) {
+          $("#item_salon").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for queryClases doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+
+                var _title = doc.data().nombre
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_salon").append(div)
+                //console.log("value: ",$("#item_pais").val());
+
+            });
+        });
+      });
+
+      $('#item_salon').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_salon option:selected" ).text()
+
+        salonSelected = _item_link
+        claseSelected = ""
+
+
+        $("#item_clase")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#bodyTable")
+        .find('option')
+        .remove()
+        .end()
+
+        stats()
+
+        docRefClase.where("salon", "==", _item_link).get().then(function(querySnapshot) {
+          $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for queryClases doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+
+                var _title = doc.data().nombre
+                var _timeS = doc.data().h_inicio
+                var _timeF = doc.data().h_final
+
+                var _fullTitle = _title + " de (" + _timeS + "-" + _timeF +")"
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_clase").append(div)
+                //console.log("value: ",$("#item_link").val());
+
+            });
+        });
+      });
+
+      $('#item_clase').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_salon option:selected" ).text()
+
+
+        claseSelected = _item_link
+        stats()
+
+      });
+
+
+      //load info clases
+      var numClases
+      var numProf
+      function stats()
+      {
+        numClases = 0
+        numProf = 0
+        $('#clases_creadas').html(numClases)
+        $('#num_profesores').html(numProf)
+
+        var queryClases = docRefClase
+        var queryProfesor = docRefProfesor
+
+        if(paisSelected!="")
+        {
+          queryClases = docRefClase.where("pais", "==", paisSelected)
+          queryProfesor = docRefProfesor.where("pais", "==", paisSelected)
+        }
+
+
+        if(regionSelected!="")
+        {
+          queryClases = docRefClase.where("region", "==", regionSelected)
+          queryProfesor = docRefProfesor.where("region", "==", regionSelected)
+        }
+
+        if(ciudadSelected!="")
+        {
+          queryClases = docRefClase.where("ciudad", "==", ciudadSelected)
+          queryProfesor = docRefProfesor.where("ciudad", "==", ciudadSelected)
+        }
+
+        if(sedeSelected!="")
+        {
+          queryClases = docRefClase.where("sede", "==", sedeSelected)
+          queryProfesor = docRefProfesor.where("sede", "==", sedeSelected)
+        }
+
+
+        if(salonSelected!="")
+        {
+          queryClases = docRefClase.where("salon", "==", salonSelected)
+          queryProfesor = docRefProfesor.where("salon", "==", salonSelected)
+        }
+
+
+
+        queryClases.get().then(function(querySnapshot) {
+            querySnapshot.forEach(function(doc) {
+              numClases++
+              $('#clases_creadas').html(numClases)
+
+              var myId = doc.id
+              var _pais = doc.data().pais
+              var _region = doc.data().region
+              var _ciudad = doc.data().ciudad
+              var _sede = doc.data().sede
+              var _salon = doc.data().salon
+              var _clase = doc.data().nombre
+              var _arr = doc.data().asistencias
+
+              var arr2 = []
+              for(var i=0; i<_arr.length; i++)
+              {
+                  arr2.push(_arr[i].promedio)
+
+              }
+              console.log("_arr",arr2);
+
+              var div = '<tr>\n' +
+                  '                            <td>'+_pais+'</td>\n' +
+                  '                            <td>'+_region+'</td>\n' +
+                  '                            <td>'+_ciudad+'</td>\n' +
+                  '                            <td>'+_sede+'</td>\n' +
+                  '                            <td>'+_salon+'</td>\n' +
+                  '                            <td>'+_clase+'</td>\n' +
+                  '                            <td>' +
+                  '                               <div id="sparkbar'+numClases+'">'+arr2+'</div>'+
+                  '                             </td>'+
+                  '                            </tr>'
+
+              $("#bodyTable").append(div)
+
+              $('#sparkbar'+numClases).sparkline('html', {type: 'bar'})
+            });
+        });
+
+        queryProfesor.get().then(function(querySnapshot) {
+            querySnapshot.forEach(function(doc) {
+              numProf++
+              $('#num_profesores').html(numProf)
+            });
+        });
+      }
+
+
+      //load countries
+      docRefPais.get().then(function(querySnapshot) {
+        $("#item_pais").append('<option value="noSeleccionado">Selecciona</option>')
+          querySnapshot.forEach(function(doc) {
+              // doc.data() is never undefined for queryClases doc snapshots
+              //console.log(doc.id, " => ", doc.data());
+
+              var _title = doc.data().nombre
+              var _id = doc.id
+
+              var div = '<option value="'+_id+'">'+_title+'</option>'
+
+              $("#item_pais").append(div)
+              //console.log("value: ",$("#item_pais").val());
+
+          });
+      });
+
+
+
+    })
 
 
 

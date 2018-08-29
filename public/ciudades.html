@@ -155,8 +155,15 @@ desired effect
                         <input id="country_txt" type="text" placeholder="Ciudad" class="text-fluid">
 
                         <div class="form-group">
-                            <label>De que region</label>
-                            <select class="form-control" id="item_link">
+                            <label>De que País</label>
+                            <select class="form-control" id="item_pais">
+
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>De que Región</label>
+                            <select class="form-control" id="item_region">
 
                             </select>
                         </div>
@@ -241,9 +248,52 @@ desired effect
     var docRefActual = db.collection('ciudades')
     var docRefContent = db.collection('regiones')
 
+    var docRefPais = db.collection('paises')
+    var docRefRegiones = db.collection('regiones')
+
 
     $(document).ready(function ()
     {
+
+      $('#item_pais').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_pais option:selected" ).text()
+        $("#item_region")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_ciudad")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_sede")
+        .find('option')
+        .remove()
+        .end()
+
+
+        docRefRegiones.where("pais", "==", _item_link).get().then(function(querySnapshot) {
+
+            $("#item_region").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for query doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+                var _title = doc.data().nombre
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_region").append(div)
+                //console.log("value: ",$("#item_pais").val());
+
+            });
+
+        });
+      });
+
+
 
     //load
     docRefActual.get().then(function(querySnapshot) {
@@ -273,21 +323,19 @@ desired effect
       })
 
       //load countries
-      docRefContent.get().then(function(querySnapshot) {
+      docRefPais.get().then(function(querySnapshot) {
+        $("#item_pais").append('<option value="noSeleccionado">Selecciona</option>')
           querySnapshot.forEach(function(doc) {
               // doc.data() is never undefined for query doc snapshots
               //console.log(doc.id, " => ", doc.data());
 
               var _title = doc.data().nombre
-              var _country = doc.data().pais
-
               var _id = doc.id
-              var _fullTitle = _title +"-"+ _country
 
-              var div = '<option value="'+_id+'">'+_fullTitle+'</option>'
+              var div = '<option value="'+_id+'">'+_title+'</option>'
 
-              $("#item_link").append(div)
-              //console.log("value: ",$("#item_link").val());
+              $("#item_pais").append(div)
+              //console.log("value: ",$("#item_pais").val());
 
           });
       });
@@ -299,15 +347,17 @@ desired effect
     function save()
     {
       var _ciudad = $('#country_txt').val()
-      var _item_link = $( "#item_link option:selected" ).text().split("-");
-      var _reg = _item_link[0]
-      var _cou = _item_link[1]
-      var _item_link_id = $("#item_link").val()
+      var _item_pais = $( "#item_pais option:selected" ).text();
+      var _item_pais_id = $("#item_pais").val()
+      var _item_region = $( "#item_region option:selected" ).text();
+      var _item_region_id = $("#item_region").val()
+
         docRefActual.add({
-            nombre:_ciudad,
-            region:_reg,
-            pais:_cou,
-            region_id:_item_link_id,
+            nombre:   _ciudad,
+            pais:     _item_pais,
+            pais_id:  _item_pais_id,
+            region:   _item_region,
+            region_id:_item_region_id
 
             }).then(function(docRef) {
 

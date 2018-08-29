@@ -164,35 +164,42 @@ desired effect
 
                     <div class="form-group">
                         <label>De que País</label>
-                        <select class="form-control" id="item_link_pais">
+                        <select class="form-control" id="item_pais">
+
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>De que Región</label>
+                        <select class="form-control" id="item_region">
 
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label>De que Ciudad</label>
-                        <select class="form-control" id="item_link_ciudad">
+                        <select class="form-control" id="item_ciudad">
 
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label>De que sede</label>
-                        <select class="form-control" id="item_link_sede">
+                        <select class="form-control" id="item_sede">
 
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label>En que salón</label>
-                        <select class="form-control" id="item_link_salon">
+                        <select class="form-control" id="item_salon">
 
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label>Que clase</label>
-                        <select class="form-control" id="item_link_clase">
+                        <select class="form-control" id="item_clase">
 
                         </select>
                     </div>
@@ -290,9 +297,11 @@ var getUrlParameter = function getUrlParameter(sParam) {
     var docRefActual = db.collection('profesores')
     var docRefContent = db.collection('ciudades')
 
-    var docRefSedes = db.collection('sedes')
+
     var docRefPais = db.collection('paises')
+    var docRefRegiones = db.collection('regiones')
     var docRefCiudad = db.collection('ciudades')
+    var docRefSedes = db.collection('sedes')
     var docRefSalon = db.collection('salones')
     var docRefClase = db.collection('clases')
 
@@ -303,23 +312,28 @@ var getUrlParameter = function getUrlParameter(sParam) {
     $(document).ready(function ()
     {
 
-      $('#item_link_pais').on('change', function() {
+      $('#item_pais').on('change', function() {
         //load cities
-        var _item_link = $( "#item_link_pais option:selected" ).text()
-        $("#item_link_ciudad")
+        var _item_link = $( "#item_pais option:selected" ).text()
+        $("#item_region")
         .find('option')
         .remove()
         .end()
 
-        $("#item_link_sede")
+        $("#item_ciudad")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_sede")
         .find('option')
         .remove()
         .end()
 
 
-        docRefCiudad.where("pais", "==", _item_link).get().then(function(querySnapshot) {
+        docRefRegiones.where("pais", "==", _item_link).get().then(function(querySnapshot) {
 
-            $("#item_link_ciudad").append('<option value="noSeleccionado">Selecciona</option>')
+            $("#item_region").append('<option value="noSeleccionado">Selecciona</option>')
             querySnapshot.forEach(function(doc) {
                 // doc.data() is never undefined for query doc snapshots
                 //console.log(doc.id, " => ", doc.data());
@@ -328,23 +342,48 @@ var getUrlParameter = function getUrlParameter(sParam) {
 
                 var div = '<option value="'+_id+'">'+_title+'</option>'
 
-                $("#item_link_ciudad").append(div)
-                //console.log("value: ",$("#item_link").val());
+                $("#item_region").append(div)
+                //console.log("value: ",$("#item_pais").val());
 
             });
 
         });
       });
 
-      $('#item_link_ciudad').on('change', function() {
+      $('#item_region').on('change', function() {
         //load cities
-        var _item_link = $( "#item_link_ciudad option:selected" ).text()
-        $("#item_link_sede")
+        var _item_link = $( "#item_region option:selected" ).text()
+        $("#item_ciudad")
+        .find('option')
+        .remove()
+        .end()
+        docRefCiudad.where("region", "==", _item_link).get().then(function(querySnapshot) {
+          $("#item_ciudad").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for query doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+
+                var _title = doc.data().nombre
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_ciudad").append(div)
+                //console.log("value: ",$("#item_pais").val());
+
+            });
+        });
+      });
+
+      $('#item_ciudad').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_ciudad option:selected" ).text()
+        $("#item_sede")
         .find('option')
         .remove()
         .end()
         docRefSedes.where("ciudad", "==", _item_link).get().then(function(querySnapshot) {
-          $("#item_link_sede").append('<option value="noSeleccionado">Selecciona</option>')
+          $("#item_sede").append('<option value="noSeleccionado">Selecciona</option>')
             querySnapshot.forEach(function(doc) {
                 // doc.data() is never undefined for query doc snapshots
                 //console.log(doc.id, " => ", doc.data());
@@ -354,23 +393,22 @@ var getUrlParameter = function getUrlParameter(sParam) {
 
                 var div = '<option value="'+_id+'">'+_title+'</option>'
 
-                $("#item_link_sede").append(div)
-                //console.log("value: ",$("#item_link").val());
+                $("#item_sede").append(div)
+                //console.log("value: ",$("#item_pais").val());
 
             });
         });
       });
 
-
-      $('#item_link_sede').on('change', function() {
-        //load cities
-        var _item_link = $( "#item_link_ciudad option:selected" ).text()
-        $("#item_link_salon")
+      $('#item_sede').on('change', function() {
+        //load sedes
+        var _item_link = $( "#item_sede option:selected" ).text()
+        $("#item_salon")
         .find('option')
         .remove()
         .end()
-        docRefSalon.where("ciudad", "==", _item_link).get().then(function(querySnapshot) {
-          $("#item_link_salon").append('<option value="noSeleccionado">Selecciona</option>')
+        docRefSalon.where("sede", "==", _item_link).get().then(function(querySnapshot) {
+          $("#item_salon").append('<option value="noSeleccionado">Selecciona</option>')
             querySnapshot.forEach(function(doc) {
                 // doc.data() is never undefined for query doc snapshots
                 //console.log(doc.id, " => ", doc.data());
@@ -380,22 +418,22 @@ var getUrlParameter = function getUrlParameter(sParam) {
 
                 var div = '<option value="'+_id+'">'+_title+'</option>'
 
-                $("#item_link_salon").append(div)
-                //console.log("value: ",$("#item_link").val());
+                $("#item_salon").append(div)
+                //console.log("value: ",$("#item_pais").val());
 
             });
         });
       });
 
-      $('#item_link_salon').on('change', function() {
+      $('#item_salon').on('change', function() {
         //load cities
-        var _item_link = $( "#item_link_ciudad option:selected" ).text()
-        $("#item_link_clase")
+        var _item_link = $( "#item_ciudad option:selected" ).text()
+        $("#item_clase")
         .find('option')
         .remove()
         .end()
         docRefClase.where("ciudad", "==", _item_link).get().then(function(querySnapshot) {
-          $("#item_link_clase").append('<option value="noSeleccionado">Selecciona</option>')
+          $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
             querySnapshot.forEach(function(doc) {
                 // doc.data() is never undefined for query doc snapshots
                 //console.log(doc.id, " => ", doc.data());
@@ -407,9 +445,9 @@ var getUrlParameter = function getUrlParameter(sParam) {
                 var _fullTitle = _title + " de (" + _timeS + "-" + _timeF +")"
                 var _id = doc.id
 
-                var div = '<option value="'+_id+'">'+_fullTitle+'</option>'
+                var div = '<option value="'+_id+'">'+_title+'</option>'
 
-                $("#item_link_clase").append(div)
+                $("#item_clase").append(div)
                 //console.log("value: ",$("#item_link").val());
 
             });
@@ -457,19 +495,18 @@ var getUrlParameter = function getUrlParameter(sParam) {
 
       //load countries
       docRefPais.get().then(function(querySnapshot) {
-        $("#item_link_pais").append('<option value="noSeleccionado">Selecciona</option>')
+        $("#item_pais").append('<option value="noSeleccionado">Selecciona</option>')
           querySnapshot.forEach(function(doc) {
+              // doc.data() is never undefined for query doc snapshots
+              //console.log(doc.id, " => ", doc.data());
 
               var _title = doc.data().nombre
-
-              var _fullTitle = _title
-
               var _id = doc.id
 
               var div = '<option value="'+_id+'">'+_title+'</option>'
 
-              $("#item_link_pais").append(div)
-              //console.log("value: ",$("#item_link").val());
+              $("#item_pais").append(div)
+              //console.log("value: ",$("#item_pais").val());
 
           });
       });
@@ -487,24 +524,32 @@ var getUrlParameter = function getUrlParameter(sParam) {
     function save()
     {
 
-      var _item_ciudad = $( "#item_link_ciudad option:selected" ).text();
-      var _item_ciudad_id = $("#item_link_ciudad").val()
-      var _item_pais = $( "#item_link_pais option:selected" ).text();
-      var _item_pais_id = $("#item_link_pais").val()
-      var _item_salon = $( "#item_link_salon option:selected" ).text();
-      var _item_salon_id = $("#item_link_salon").val()
-      var _item_clase = $( "#item_link_clase option:selected" ).text();
-      var _item_clase_id = $("#item_link_clase").val()
+      var _item_pais = $( "#item_pais option:selected" ).text();
+      var _item_pais_id = $("#item_pais").val()
+      var _item_region = $( "#item_region option:selected" ).text();
+      var _item_region_id = $("#item_region").val()
+      var _item_ciudad = $( "#item_ciudad option:selected" ).text();
+      var _item_ciudad_id = $( "#item_ciudad" ).val();
+      var _item_sede = $( "#item_sede option:selected" ).text();
+      var _item_sede_id = $( "#item_sede" ).val();
+      var _item_salon = $( "#item_salon option:selected" ).text();
+      var _item_salon_id = $( "#item_salon" ).val();
+      var _item_clase = $( "#item_clase option:selected" ).text();
+      var _item_clase_id = $("#item_clase").val()
 
 
         docRefActual.doc(myID).collection("clases").add({
 
-            ciudad:_item_ciudad,
+            pais:     _item_pais,
+            pais_id:  _item_pais_id,
+            ciudad:   _item_ciudad,
             ciudad_id:_item_ciudad_id,
-            pais:_item_pais,
-            pais_id:_item_pais_id,
-            salon:_item_salon,
-            salon_id:_item_salon_id,
+            region:   _item_region,
+            region_id:_item_region_id,
+            sede:     _item_sede,
+            sede_id:  _item_sede_id,
+            salon:    _item_salon,
+            salon_id: _item_salon_id,
             clase:_item_clase,
             clase_id:_item_clase_id
 
