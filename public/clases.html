@@ -261,6 +261,13 @@ desired effect
                         </select>
                     </div>
 
+                    <div class="form-group">
+                        <label>¿Agregar profesor?</label>
+                        <select class="form-control" id="item_profesor">
+
+                        </select>
+                    </div>
+
 
                   </div>
 
@@ -284,6 +291,7 @@ desired effect
               <th>Hora inicio</th>
               <th>Hora final</th>
               <th>Salón</th>
+              <th>Profesor</th>
 
               <th style="width: 100px"></th>
           </tr>
@@ -345,13 +353,15 @@ desired effect
     var docRefActual = db.collection('clases')
     var docRefContent = db.collection('salones')
 
-
+    var docRefProfesores = db.collection('profesores')
     var docRefPais = db.collection('paises')
     var docRefRegiones = db.collection('regiones')
     var docRefCiudad = db.collection('ciudades')
     var docRefSedes = db.collection('sedes')
 
     var arrDays = []
+    var isEdit = false
+    var idEdit = ""
 
     $(document).ready(function ()
     {
@@ -397,6 +407,11 @@ desired effect
             .remove()
             .end()
 
+            $("#item_profesor")
+            .find('option')
+            .remove()
+            .end()
+
             $("#item_sede")
             .find('option')
             .remove()
@@ -429,6 +444,12 @@ desired effect
             .find('option')
             .remove()
             .end()
+
+            $("#item_profesor")
+            .find('option')
+            .remove()
+            .end()
+
             docRefCiudad.where("region", "==", _item_link).get().then(function(querySnapshot) {
               $("#item_ciudad").append('<option value="noSeleccionado">Selecciona</option>')
                 querySnapshot.forEach(function(doc) {
@@ -454,6 +475,27 @@ desired effect
             .find('option')
             .remove()
             .end()
+
+
+
+            docRefProfesores.where("ciudad", "==", _item_link).get().then(function(querySnapshot) {
+              $("#item_profesor").append('<option value="noSeleccionado">Selecciona</option>')
+                querySnapshot.forEach(function(doc) {
+                    // doc.data() is never undefined for query doc snapshots
+                    //console.log(doc.id, " => ", doc.data());
+
+                    var _title = doc.data().nombre
+                    var _id = doc.id
+
+                    var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                    $("#item_profesor").append(div)
+                    //console.log("value: ",$("#item_pais").val());
+
+                });
+            });
+
+
             docRefSedes.where("ciudad", "==", _item_link).get().then(function(querySnapshot) {
               $("#item_sede").append('<option value="noSeleccionado">Selecciona</option>')
                 querySnapshot.forEach(function(doc) {
@@ -507,12 +549,14 @@ desired effect
                 var _hFinal = doc.data().h_final
                 var _salon = doc.data().salon
                 var _pais = doc.data().pais
+                var _profesor = doc.data().profesor
 
                 var div = '<tr>\n' +
                     '                            <td>'+_title+'</td>\n' +
                     '                            <td>'+_hInicio+'</td>\n' +
                     '                            <td>'+_hFinal+'</td>\n' +
                     '                            <td>'+_salon+'</td>\n' +
+                    '                            <td>'+_profesor+'</td>\n' +
 
                     '                            <td>\n' +
                     '                                <div class="btn-group">\n' +
@@ -565,10 +609,15 @@ desired effect
           var _item_sede_id = $( "#item_sede" ).val();
           var _item_salon = $( "#item_salon option:selected" ).text();
           var _item_salon_id = $( "#item_salon" ).val();
+          var _item_profesor = $( "#item_profesor option:selected" ).text();
+          var _item_profesor_id = $( "#item_profesor" ).val();
 
           var _hInicio = $("#hInicio").val()
           var _hFinal = $("#hFinal").val()
 
+
+          if(!isEdit)
+          {
             docRefActual.add({
                 nombre:   _nombre,
                 h_inicio: _hInicio,
@@ -584,7 +633,9 @@ desired effect
                 sede:     _item_sede,
                 sede_id:  _item_sede_id,
                 salon:    _item_salon,
-                salon_id: _item_salon_id
+                salon_id: _item_salon_id,
+                profesor:    _item_profesor,
+                profesor_id: _item_profesor_id
 
                 }).then(function(docRef) {
                     window.location.reload()
@@ -592,11 +643,40 @@ desired effect
                 .catch(function(error) {
                     console.error("Error writing document: ", error);
                 })
+            }else {
+              docRefActual.doc(idEdit).update({
+                  nombre:   _nombre,
+                  h_inicio: _hInicio,
+                  h_final:  _hFinal,
+                  diasClase:     arrDays,
+
+                  pais:     _item_pais,
+                  pais_id:  _item_pais_id,
+                  ciudad:   _item_ciudad,
+                  ciudad_id:_item_ciudad_id,
+                  region:   _item_region,
+                  region_id:_item_region_id,
+                  sede:     _item_sede,
+                  sede_id:  _item_sede_id,
+                  salon:    _item_salon,
+                  salon_id: _item_salon_id,
+                  profesor:    _item_profesor,
+                  profesor_id: _item_profesor_id
+
+                  }).then(function(docRef) {
+                      window.location.reload()
+                  })
+                  .catch(function(error) {
+                      console.error("Error writing document: ", error);
+                  })
+            }
         }
 
         //edit
         function editMe(_this) {
 
+          isEdit = true
+          idEdit = _this.dataset.capture
           docRefActual.doc(_this.dataset.capture).get().then(function(doc) {
               if (doc.exists) {
                   $('#myModal').modal('show');
@@ -631,6 +711,7 @@ desired effect
 
         function clearFields()
         {
+          isEdit = false
           $('#name_txt').val("")
           $('#hInicio').val("")
           $('#hFinal').val("")

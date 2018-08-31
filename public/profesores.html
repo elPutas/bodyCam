@@ -198,7 +198,7 @@ desired effect
               <th>CC</th>
               <th>Ciudad</th>
 
-              <th style="width: 140px"></th>
+              <th style="width: 100px"></th>
           </tr>
           </tbody>
       </table>
@@ -260,6 +260,8 @@ desired effect
     var docRefRegiones = db.collection('regiones')
     var docRefCiudad = db.collection('ciudades')
 
+    var isEdit = false
+    var idEdit = ""
 
     $(document).ready(function ()
     {
@@ -345,7 +347,7 @@ desired effect
                 '                            <td>'+_ciudad+'</td>\n' +
                 '                            <td>\n' +
                 '                                <div class="btn-group">\n' +
-                '                                    <button data-capture="'+myId+'" onclick="enterMe(this)" type="button" class="btn btn-default"><i class="fa fa-sign-out"></i></button>\n' +
+                //'                                    <button data-capture="'+myId+'" onclick="enterMe(this)" type="button" class="btn btn-default"><i class="fa fa-sign-out"></i></button>\n' +
                 '                                    <button data-capture="'+myId+'" onclick="editMe(this)" type="button" class="btn btn-info"><i class="fa fa-edit"></i></button>\n' +
                 '                                    <button data-capture="'+myId+'" onclick="deleteMe(this)" type="button" class="btn btn-danger"><i class="fa fa-trash"></i></button>\n' +
                 '                                </div>\n' +
@@ -392,6 +394,8 @@ desired effect
       var _item_ciudad = $( "#item_ciudad option:selected" ).text();
       var _item_ciudad_id = $( "#item_ciudad" ).val();
 
+      if(!isEdit)
+      {
         docRefActual.add({
             nombre:_nombre,
             cc:_cc,
@@ -410,6 +414,26 @@ desired effect
             .catch(function(error) {
                 console.error("Error writing document: ", error);
             })
+        }else {
+          docRefActual.doc(idEdit).update({
+              nombre:_nombre,
+              cc:_cc,
+
+              pais:     _item_pais,
+              pais_id:  _item_pais_id,
+              ciudad:   _item_ciudad,
+              ciudad_id:_item_ciudad_id,
+              region:   _item_region,
+              region_id:_item_region_id
+
+              }).then(function(docRef) {
+
+                  window.location.reload()
+              })
+              .catch(function(error) {
+                  console.error("Error writing document: ", error);
+              })
+        }
     }
 
     //delete
@@ -430,7 +454,8 @@ desired effect
 
     //edit
     function editMe(_this) {
-
+      isEdit = true
+      idEdit = _this.dataset.capture
       docRefActual.doc(_this.dataset.capture).get().then(function(doc) {
           if (doc.exists) {
               $('#myModal').modal('show');
@@ -456,6 +481,7 @@ desired effect
 
     function clearFields()
     {
+      isEdit = false
       $('#name_txt').val("")
       $('#cc_txt').val("")
     }
