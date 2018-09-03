@@ -123,16 +123,17 @@ desired effect
 
       <!-- Sidebar Menu -->
       <ul class="sidebar-menu" data-widget="tree">
-        <li class="header">SECCIONES</li>
+        <li class="header"></li>
         <!-- Optionally, you can add icons to the links -->
-        <li class="active"><a href="#"><i class="fa fa-link"></i> <span>Index</span></a></li>
-        <li><a href="paises.html"><i class="fa fa-link"></i> <span>Países</span></a></li>
-        <li><a href="regiones.html"><i class="fa fa-link"></i> <span>Regiones</span></a></li>
-        <li><a href="ciudades.html"><i class="fa fa-link"></i> <span>Ciudades</span></a></li>
-        <li><a href="sedes.html"><i class="fa fa-link"></i> <span>Sedes</span></a></li>
-        <li><a href="salones.html"><i class="fa fa-link"></i> <span>Salones</span></a></li>
-        <li><a href="clases.html"><i class="fa fa-link"></i> <span>Clases</span></a></li>
-        <li><a href="profesores.html"><i class="fa fa-link"></i> <span>Profesores</span></a></li>
+        <li class="active"><a href="#"><i class="fa fa-bar-chart text-yellow"></i> <span>Estadísticas</span></a></li>
+        <li class="header">ADMINISTRAR</li>
+        <li><a href="paises.html"><i class="fa fa-flag"></i> <span>Países</span></a></li>
+        <li><a href="regiones.html"><i class="fa fa-object-group"></i> <span>Regiones</span></a></li>
+        <li><a href="ciudades.html"><i class="fa fa-square"></i> <span>Ciudades</span></a></li>
+        <li><a href="sedes.html"><i class="fa fa-th-large"></i> <span>Sedes</span></a></li>
+        <li><a href="salones.html"><i class="fa fa-th"></i> <span>Salones</span></a></li>
+        <li><a href="clases.html"><i class="fa fa-calendar-check-o"></i> <span>Clases</span></a></li>
+        <li><a href="profesores.html"><i class="fa fa-users"></i> <span>Profesores</span></a></li>
       </ul>
       <!-- /.sidebar-menu -->
     </section>
@@ -150,49 +151,109 @@ desired effect
     <!-- Main content -->
     <section class="content container-fluid">
 
+      <h1>
+        Estadísticas
+      </h1>
       <div class="row">
-        <div class="form-group col-md-2">
-            <label>País</label>
-            <select class="form-control" id="item_pais">
 
-            </select>
+          <div class="form-group col-md-2">
+            <br>
+              <label>País</label>
+              <select class="form-control" id="item_pais">
+
+              </select>
+          </div>
+
+          <div class="form-group col-md-2">
+            <br>
+              <label>Región</label>
+              <select class="form-control" id="item_region">
+
+              </select>
+          </div>
+
+          <div class="form-group col-md-2">
+            <br>
+              <label>Ciudad</label>
+              <select class="form-control" id="item_ciudad">
+
+              </select>
+          </div>
+
+          <div class="form-group col-md-6">
+            <label>Filtrar por:</label>
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="optionsRadios" id="op_1" value="porClase" checked="">
+                    Clase
+                  </label>
+                </div>
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="optionsRadios" id="op_2" value="porProfesor">
+                    Profesor
+                  </label>
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="form-group col-md-2">
-            <label>Región</label>
-            <select class="form-control" id="item_region">
 
-            </select>
+
+
+
+        <div class="row">
+          <div class="col-md-6">
+            <h2>
+              Filtro
+              <small>por clase</small>
+            </h2>
+
+              <div class="form-group col-md-4">
+                  <label>Sede</label>
+                  <select class="form-control" id="item_sede">
+
+                  </select>
+              </div>
+
+              <div class="form-group col-md-4">
+                  <label>Salón</label>
+                  <select class="form-control" id="item_salon">
+
+                  </select>
+              </div>
+
+              <div class="form-group col-md-4">
+                  <label>Clase</label>
+                  <select class="form-control" id="item_clase">
+
+                  </select>
+              </div>
+          </div>
+
+          <div class="col-md-6">
+            <h2>
+              Filtro
+              <small>por profesor</small>
+            </h2>
+
+              <div class="form-group col-md-6">
+                  <label>Profesor</label>
+                  <select class="form-control" id="item_profesor" disabled>
+
+                  </select>
+              </div>
+
+          </div>
+
         </div>
 
-        <div class="form-group col-md-2">
-            <label>Ciudad</label>
-            <select class="form-control" id="item_ciudad">
 
-            </select>
-        </div>
 
-        <div class="form-group col-md-2">
-            <label>Sede</label>
-            <select class="form-control" id="item_sede">
 
-            </select>
-        </div>
 
-        <div class="form-group col-md-2">
-            <label>Salón</label>
-            <select class="form-control" id="item_salon">
 
-            </select>
-        </div>
-
-        <div class="form-group col-md-2">
-            <label>Clase</label>
-            <select class="form-control" id="item_clase">
-
-            </select>
-        </div>
-      </div>
 
 
       <div class="row">
@@ -414,6 +475,8 @@ desired effect
     var startDate;
     var endDate;
 
+    var isFilterByClass = true
+
     var queryClases = docRefClase
     var queryProfesor = docRefProfesor
 
@@ -602,6 +665,41 @@ desired effect
       stats()
       //createChart()
 
+      //type filter
+      $(document).on('change', 'input:radio[id^="op_"]', function (event) {
+
+        console.log(event.target.value);
+
+        isFilterByClass = event.target.value!="porClase"
+
+        if(isFilterByClass)
+        {
+          $("#item_sede").prop('disabled', 'disabled');
+          $("#item_clase").prop('disabled', 'disabled');
+          $("#item_salon").prop('disabled', 'disabled');
+
+          $("#item_profesor").removeAttr("disabled");
+
+          $("#item_salon")
+          .find('option')
+          .remove()
+          .end()
+
+          $("#item_clase")
+          .find('option')
+          .remove()
+          .end()
+
+
+        }else{
+          $("#item_profesor").prop('disabled', 'disabled');
+
+          $("#item_sede").removeAttr("disabled");
+          $("#item_clase").removeAttr("disabled");
+          $("#item_salon").removeAttr("disabled");
+        }
+      });
+
 
       //Date range picker
       $('#datePicker').daterangepicker()
@@ -630,6 +728,7 @@ desired effect
         sedeSelected = ""
         salonSelected = ""
         claseSelected = ""
+        profesorSelected = ""
 
 
 
@@ -693,6 +792,7 @@ desired effect
         sedeSelected = ""
         salonSelected = ""
         claseSelected = ""
+        profesorSelected = ""
 
 
         $("#bodyTable")
@@ -716,6 +816,11 @@ desired effect
         .end()
 
         $("#item_clase")
+        .find('option')
+        .remove()
+        .end()
+
+        $("#item_profesor")
         .find('option')
         .remove()
         .end()
@@ -746,8 +851,12 @@ desired effect
         sedeSelected = ""
         salonSelected = ""
         claseSelected = ""
+        profesorSelected = ""
 
-
+        $("#item_profesor")
+        .find('option')
+        .remove()
+        .end()
 
         $("#item_sede")
         .find('option')
@@ -785,7 +894,41 @@ desired effect
 
             });
         });
+
+
+        docRefProfesor.where("ciudad", "==", _item_link).get().then(function(querySnapshot) {
+          $("#item_profesor").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+
+                var _title = doc.data().nombre
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_profesor").append(div)
+                //console.log("value: ",$("#item_pais").val());
+
+            });
+        });
+
+
+
       });
+
+      $('#item_profesor').on('change', function() {
+        //load cities
+        var _item_link = $( "#item_profesor" ).val()
+
+        profesorSelected = _item_link
+        console.log("profesorSelected", profesorSelected);
+
+        $("#bodyTable")
+        .find('td')
+        .remove()
+        .end()
+
+        stats()
+      })
 
       $('#item_sede').on('change', function() {
         //load sedes
@@ -794,7 +937,7 @@ desired effect
         sedeSelected = _item_link
         salonSelected = ""
         claseSelected = ""
-
+        profesorSelected = ""
 
         $("#item_salon")
         .find('option')
@@ -835,6 +978,7 @@ desired effect
 
         salonSelected = _item_link
         claseSelected = ""
+        profesorSelected = ""
 
 
         $("#item_clase")
@@ -914,17 +1058,27 @@ desired effect
         if(sedeSelected!="")
         {
           queryClases = docRefClase.where("sede", "==", sedeSelected)
-          queryProfesor = docRefProfesor.where("sede", "==", sedeSelected)
         }
 
 
         if(salonSelected!="")
         {
           queryClases = docRefClase.where("salon", "==", salonSelected)
-          queryProfesor = docRefProfesor.where("salon", "==", salonSelected)
         }
 
 
+        if(profesorSelected!="")
+        {
+          console.log("profesorSelected", profesorSelected);
+          queryClases = docRefClase.where("profesor_id", "==", profesorSelected)
+        }
+
+
+        var docFiltered
+        if(isFilterByClass)
+          docFiltered = queryClases
+        else
+          docFiltered = queryProfesor
 
         queryClases.get().then(function(querySnapshot) {
             querySnapshot.forEach(function(doc) {
