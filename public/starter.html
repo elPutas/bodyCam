@@ -325,7 +325,7 @@ desired effect
           <div class="box-tools pull-right">
             <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
             </button>
-            
+
           </div>
         </div>
         <!-- /.box-header -->
@@ -996,7 +996,9 @@ desired effect
 
         stats()
 
-        docRefClase.where("salon", "==", _item_link).get().then(function(querySnapshot) {
+        docRefClase.where("salon", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
           $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
             querySnapshot.forEach(function(doc) {
 

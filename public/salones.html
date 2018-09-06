@@ -153,9 +153,17 @@ desired effect
                       <h4 class="modal-title">Agregar salón</h4>
                   </div>
                   <div class="modal-body">
+                      <label>Nombre del salón</label>
                         <input id="country_txt" type="text" placeholder="Salón" class="text-fluid">
-                        <input id="cam_txt" type="text" placeholder="ID Cámara" class="text-fluid">
-                        <input id="capMax_txt" type="number" placeholder="Capacidad máxima/Inscritos" class="text-fluid">
+                        <div class="form-group">
+                            <label>Cámaras disponibles</label>
+                            <select class="form-control" id="cam_txt">
+
+                            </select>
+                        </div>
+
+
+                        <!--input id="capMax_txt" type="number" placeholder="Capacidad máxima/Inscritos" class="text-fluid"-->
 
                         <div class="form-group">
                             <label>De que País</label>
@@ -268,6 +276,7 @@ desired effect
     var docRefContent = db.collection('sedes')
 
     var docRefPais = db.collection('paises')
+    var docRefCam = db.collection('camaras')
     var docRefRegiones = db.collection('regiones')
     var docRefCiudad = db.collection('ciudades')
     var docRefSedes = db.collection('sedes')
@@ -414,6 +423,24 @@ desired effect
           });
       });
 
+      //load cameras
+      docRefCam.where("asignada", "==", false).get().then(function(querySnapshot) {
+        $("#cam_txt").append('<option value="noSeleccionado">Selecciona</option>')
+          querySnapshot.forEach(function(doc) {
+              // doc.data() is never undefined for query doc snapshots
+              //console.log(doc.id, " => ", doc.data());
+
+              var _title = doc.data().id
+              var _id = doc.id
+
+              var div = '<option value="'+_id+'">'+_id+'</option>'
+
+              $("#cam_txt").append(div)
+              //console.log("value: ",$("#item_pais").val());
+
+          });
+      });
+
 
 
     })
@@ -423,8 +450,8 @@ desired effect
     function save()
     {
       var _region = $('#country_txt').val()
-      var _cam = $('#cam_txt').val()
-      var _capMax = $('#capMax_txt').val()
+      var _cam = $('#cam_txt option:selected').text();
+      //var _capMax = $('#capMax_txt').val()
 
       var _item_pais = $( "#item_pais option:selected" ).text();
       var _item_pais_id = $("#item_pais").val()
@@ -440,7 +467,8 @@ desired effect
         docRefActual.add({
             nombre:_region,
             idCam:_cam,
-            capMax:_capMax,
+            //capMax:_capMax,
+
 
             pais:     _item_pais,
             pais_id:  _item_pais_id,
@@ -452,7 +480,9 @@ desired effect
             sede_id:  _item_sede_id
 
             }).then(function(docRef) {
-                window.location.reload()
+                docRefCam.doc(_cam).update({asignada:true, salon_actual: docRef.id}).then(function(){
+                  window.location.reload()
+                })
             })
             .catch(function(error) {
                 console.error("Error writing document: ", error);
