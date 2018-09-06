@@ -74,73 +74,10 @@ exports.keepStats  = functions.https.onRequest((req, res) => {
           });
         })
       })
-      //var docRefCamar = db.collection('camaras').doc(id_cam);
-      //var act_cam = getCamera(id_cam);
-      /*if(act_cam === null){
-        var camObj = {
-          asignada: false,
-          fecha_creado: new Date(),
-          id: id_cam,
-        };
-        act_cam = createCamera(idCam, objcamera);
-      }*/
-      /*var getDoc = docRefCamar.get()
-            .then(doc => {
-              if (doc.exists) {
-                act_cam = doc;
-              }else{
 
-              }
-            });
-
-      */
-
-
-      //admin.database().ref('/info_bruto_camaras').push(obj_info);
-      //db.collection('info_bruto_camaras').add(obj_info);
-      //db.collection('info_bruto_camaras').add(obj_info);
-      //var setDoc = db.collection('info_bruto_camaras').doc(result['EventNotificationAlert']['macAddress'][0]).set(obj_info);
-      //var setCamara = db.collection('camaras').doc(result['EventNotificationAlert']['macAddress'][0]).set(obj_info);
-      //console.log(act_cam);
-
-      //newCityRef.set(obj_info);
-
-      /*res.status(200).json({
-        message:"It worked",
-        objk:obj_info,
-        stoans:act_cam
-        //newPostKey:newPostKey
-        //str:xmlData
-        //data:result,
-        //ipAddress: result['EventNotificationAlert']['ipAddress'][0],
-        //macAddress: result['EventNotificationAlert']['macAddress'][0],
-        //datetime: result['EventNotificationAlert']['peopleCounting'][0]['RealTime'][0]['time'][0],
-        //enter: parseInt(result['EventNotificationAlert']['peopleCounting'][0]['enter'][0]),
-        //exit: parseInt(result['EventNotificationAlert']['peopleCounting'][0]['exit'][0]),
-        //pass: parseInt(result['EventNotificationAlert']['peopleCounting'][0]['pass'][0])
-      });*/
     }
   });
 
-
-  /*
-  parseString(xmlData, (err, result) => {
-    if (err) {
-      console.error(err);
-      res.status(500).end();
-      return;
-    }
-    res.send(result);
-  */
-  /*
-  parseString(xmlData, (err, result) => {
-    if (err) {
-      console.error(err);
-      res.status(500).end();
-      return;
-    }
-    res.send(result);
-    */
 });
 
 function getCamera(id_cam, callfinded, callnotfinded){
@@ -183,3 +120,40 @@ function cameraAddInfo(idCamara, info, added){
         return null;
       });
 }
+
+function getSalonByCamara(idCamara, callfinded, callnotfinded){
+  var docRefSalones = db.collection('salones');
+  docRefSalones.where('idCam', '==', idCamara).get()
+    .then(doc=>{
+      if (doc.exists) {
+        return callfinded(doc);
+      }else{
+        return callnotfinded();
+      }
+    });
+}
+
+function getClasesBySalonByDayOfWeek(idSalon, dayOfWeek, callfinded, callnotfinded){
+  var docRefClases = db.collection('clases');
+  docRefClases.where('salon_id','==',idSalon)
+              .where("diasClase", "array-contains", dayOfWeek).get()
+              .then(doc=>{
+                if (doc.exists) {
+                  return callfinded(doc);
+                }else{
+                  return callnotfinded();
+                }
+              });;
+}
+
+/*
+function getClaseBySalonXDate(idSalon, date, callfinded, callnotfinded){
+  getClasesBySalon(
+    idSalon,
+    function(){
+    },
+    function(){
+    }
+  );
+}
+*/
