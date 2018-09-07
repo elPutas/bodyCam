@@ -351,7 +351,7 @@ desired effect
     db.settings(settings);
 
     var docRefActual = db.collection('clases')
-    var docRefContent = db.collection('salones')
+    var docRefSalon = db.collection('salones')
 
     var docRefProfesores = db.collection('profesores')
     var docRefPais = db.collection('paises')
@@ -521,18 +521,24 @@ desired effect
             .find('option')
             .remove()
             .end()
-            docRefContent.where("sede", "==", _item_link).get().then(function(querySnapshot) {
+            docRefSalon.where("sede", "==", _item_link).get().then(function(querySnapshot) {
                 querySnapshot.forEach(function(doc) {
                     // doc.data() is never undefined for query doc snapshots
                     //console.log(doc.id, " => ", doc.data());
 
                     var _title = doc.data().nombre
                     var _id = doc.id
+                    var _idCam = doc.data().idCam
 
-                    var div = '<option value="'+_id+'">'+_title+'</option>'
+                    var _value = _id+'|'+_idCam
+
+                    var div = '<option value="'+_value+'">'+_title+'</option>'
 
                     $("#item_salon").append(div)
-                    //console.log("value: ",$("#item_pais").val());
+                    var _str = $("#item_salon").val()
+                    var _arr = _str.split("|");
+                    //console.log("id: ",_arr[0]);
+                    //console.log("idCam: ",_arr[1]);
 
                 });
             });
@@ -618,6 +624,9 @@ desired effect
           var _nombre = $('#name_txt').val()
           var _objetivo = $('#obj_txt').val()
 
+          var _str = $( "#item_salon" ).val()
+          var _arr = _str.split("|");
+
 
           var _item_pais = $( "#item_pais option:selected" ).text();
           var _item_pais_id = $("#item_pais").val()
@@ -628,7 +637,8 @@ desired effect
           var _item_sede = $( "#item_sede option:selected" ).text();
           var _item_sede_id = $( "#item_sede" ).val();
           var _item_salon = $( "#item_salon option:selected" ).text();
-          var _item_salon_id = $( "#item_salon" ).val();
+          var _item_salon_id = _arr[0]
+          var _cam_id = _arr[1]
           var _item_profesor = $( "#item_profesor option:selected" ).text();
           var _item_profesor_id = $( "#item_profesor" ).val();
           var _tipoClase =$('#hFinal option:selected' ).text();
@@ -650,6 +660,7 @@ desired effect
                 diasClase:     arrDays,
                 tipoClase:     _tipoClase,
 
+                cam_id:   _cam_id,
                 pais:     _item_pais,
                 pais_id:  _item_pais_id,
                 ciudad:   _item_ciudad,
@@ -678,6 +689,7 @@ desired effect
                   diasClase:     arrDays,
                   tipoClase:     _tipoClase,
 
+                  cam_id:   _cam_id,
                   pais:     _item_pais,
                   pais_id:  _item_pais_id,
                   ciudad:   _item_ciudad,

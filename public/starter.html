@@ -265,7 +265,7 @@ desired effect
             <div class="icon">
               <i class="ion ion-bag"></i>
             </div>
-            <a href="#" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+              <a class="small-box-footer"></a>
           </div>
         </div>
         <!-- ./col -->
@@ -280,7 +280,7 @@ desired effect
             <div class="icon">
               <i class="ion ion-stats-bars"></i>
             </div>
-            <a href="#" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+              <a class="small-box-footer"></a>
           </div>
         </div>
         <!-- ./col -->
@@ -295,7 +295,7 @@ desired effect
             <div class="icon">
               <i class="ion ion-person-add"></i>
             </div>
-            <a href="#" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+            <a class="small-box-footer"></a>
           </div>
         </div>
         <!-- ./col -->
@@ -310,7 +310,7 @@ desired effect
             <div class="icon">
               <i class="ion ion-pie-graph"></i>
             </div>
-            <a href="#" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+            <a class="small-box-footer"></a>
           </div>
         </div>
         <!-- ./col -->
@@ -371,6 +371,9 @@ desired effect
                       <i class="fa fa-calendar"></i>
                     </div>
                     <input type="text" class="form-control pull-right" id="datePicker" value="">
+                    <span class="input-group-btn">
+                      <button onclick="callCreateCharts()" type="button" class="btn btn-default btn-flat"><span class="fa fa-refresh"></span> Cambiar colores</button>
+                    </span>
                   </div>
                   <!-- /.input group -->
                 </div>
@@ -484,6 +487,8 @@ desired effect
     var queryProfesor = docRefProfesor
 
     var ctx
+    var arrRange = []
+    var arrData = []
 
 
     firebase.auth().onAuthStateChanged(function(user) {
@@ -555,58 +560,67 @@ desired effect
          endDate = end;
 
          var diff = start.diff(end, 'days');
-         console.log("diff",diff)
+         //console.log("diff",diff)
 
-         var arrL = []
-         var arrData = []
+
+
+
+         //var range = $('#datePicker').datarangepicker.getRange();
+         console.log(this);
+
+
+         arrRange = []
          for(i=0; i<diff*-1;i++)
          {
 
-           arrL.push('')
+           arrRange.push(moment.utc(start.format('D MMMM YYYY'),'D MMMM YYYY').add(i,'days').format('D MMMM YYYY'))
          }
 
-         queryClases.get().then(function(querySnapshot) {
-
-             querySnapshot.forEach(function(doc) {
-
-                 var _title = doc.data().nombre
-                 var _arr = doc.data().asistencias
-
-                 var arr2 = []
-                 if(_arr)
-                 {
-                   for(var i=0; i<_arr.length; i++)
-                   {
-                       arr2.push(_arr[i].promedio)
-                   }
-                 }
-
-
-                 var color = getRandomColor()
-
-                 var obj = {
-                   label               : _title,
-                   fillColor           : color,
-                   data                : arr2,
-                   backgroundColor: color,
-                 }
-
-                 arrData.push(obj)
-
-             });
-
-             arrL[0] = start.format('D MMMM YYYY');
-             arrL[arrL.length-1] = end.format('D MMMM YYYY');
-
-             console.log(arrData);
-             createChart(arrL, arrData)
-
-         });
-
-
+         callCreateCharts()
 
 
        })
+    }
+
+    function callCreateCharts()
+    {
+      queryClases.get().then(function(querySnapshot) {
+        arrData=[]
+          querySnapshot.forEach(function(doc) {
+
+              var _title = doc.data().nombre
+              var _arr = doc.data().asistencias
+
+              var arr2 = []
+              if(_arr)
+              {
+                for(var i=0; i<_arr.length; i++)
+                {
+                    arr2.push(_arr[i].promedio)
+                }
+              }
+
+
+              var color = getRandomColor()
+
+              var obj = {
+                label               : _title,
+                fillColor           : color,
+                data                : arr2,
+                backgroundColor: color,
+              }
+
+              arrData.push(obj)
+
+          });
+
+          //arrL[0] = start.format('D MMMM YYYY');
+          //arrL[arrL.length-1] = end.format('D MMMM YYYY');
+
+          //console.log(arrData);
+          createChart(arrRange, arrData)
+
+      });
     }
 
     function createChart(_arrLabels, _arrDatasets)
@@ -1086,6 +1100,9 @@ desired effect
           docFiltered = queryProfesor
 
         queryClases.get().then(function(querySnapshot) {
+          arrData = []
+
+
             querySnapshot.forEach(function(doc) {
               numClases++
               $('#clases_creadas').html(numClases)
@@ -1126,15 +1143,44 @@ desired effect
               $("#bodyTable").append(div)
 
               $('#sparkbar'+numClases).sparkline('html', {type: 'bar'})
-            });
-        });
 
-        queryProfesor.get().then(function(querySnapshot) {
-            querySnapshot.forEach(function(doc) {
+
+
+
+              var _title = doc.data().nombre
+              var _arr = doc.data().asistencias
+
+              var arr2 = []
+              if(_arr)
+              {
+                for(var i=0; i<_arr.length; i++)
+                {
+                    arr2.push(_arr[i].promedio)
+                }
+              }
+
+
+              var color = getRandomColor()
+
+              var obj = {
+                label               : _title,
+                fillColor           : color,
+                data                : arr2,
+                backgroundColor: color,
+              }
+
+              arrData.push(obj)
+
               numProf++
               $('#num_profesores').html(numProf)
             });
+
+            createChart(arrRange, arrData)
         });
+
+
+
+
       }
 
 
