@@ -7,7 +7,7 @@ const admin = require("firebase-admin");
 admin.initializeApp(functions.config().firebase);
 const db = admin.firestore();
 const interval = 10;
-const weekDays = [dom,lun,mar,mie,jue,vie,sab];
+const weekDays = ['dom','lun','mar','mie','jue','vie','sab'];
 
 //const serviceAccount = require("./My-Service.json");
 
@@ -20,7 +20,7 @@ const weekDays = [dom,lun,mar,mie,jue,vie,sab];
 
 exports.keepStats  = functions.https.onRequest((req, res) => {
   console.log("Dunked");
-  //console.log(req);
+  console.log(req);
 
   let data = req.rawBody;
   let xmlData = data.toString();
@@ -60,7 +60,7 @@ exports.keepStats  = functions.https.onRequest((req, res) => {
 
       getCamera(id_cam, function(doc){
         cameraAddInfo(id_cam, obj_info, function(){
-          getClassOfRow(id_cam, date_registro.getDay(), strDateRow,
+          getClassOfRow(id_cam, weekDays[date_registro.getDay()], strDateRow,
             function(docy){
 
               claseAddIngresos(
@@ -69,7 +69,9 @@ exports.keepStats  = functions.https.onRequest((req, res) => {
                           dameKeyRegistro(strDateRow, docy.getData().h_inicio),
                           function(){
                             //aca eval assitencia
-                            responsegood(res);
+                            evalAsistencia(docy, obj_info, function(){
+                              return responsegood(res);
+                            });
                           }
                         );
 
@@ -92,7 +94,7 @@ exports.keepStats  = functions.https.onRequest((req, res) => {
           getCamera(id_cam, function(doc){
 
             cameraAddInfo(id_cam, obj_info, function(){
-              getClassOfRow(id_cam, date_registro.getDay(), strDateRow,
+              getClassOfRow(id_cam, weekDays[date_registro.getDay()], strDateRow,
                 function(docy){
                   claseAddIngresos(
                               docy,
@@ -100,7 +102,10 @@ exports.keepStats  = functions.https.onRequest((req, res) => {
                               dameKeyRegistro(strDateRow, docy.getData().h_inicio),
                               function(){
                                 //aca eval assitencia
-                                responsegood(res);
+                                evalAsistencia(docy, obj_info, function(){
+                                  return responsegood(res);
+                                });
+
                               }
                             );
                 },
@@ -172,7 +177,7 @@ function dameHoraMiliOfstrDt(jsonDate){
 function horaClassMili(strHora){
     var fase1 = strHora.split(' ');
     var fase2 = fase1[0].split(':');
-    var hora = fase1[1] == 'PM' ? parseInt(fase2[0]) +12 : parseInt(fase2[0]);
+    var hora = fase1[1] === 'PM' ? parseInt(fase2[0]) +12 : parseInt(fase2[0]);
     return (hora*60*60*1000)+(parseInt(fase2[1])*60*1000);
 }
 
@@ -206,8 +211,84 @@ function claseAddIngresos(clase, registro, keyreg, added){
       });
 }
 
-function evalAsistencia(clase, registro, date,added){
-  //if()
+function evalAsistencia(clase, registro, added){
+  /*
+  obj_info = {
+    fecha: date_registro,
+    ingresaron: parseInt(result['EventNotificationAlert']['peopleCounting'][0]['enter'][0]),
+    salieron: parseInt(result['EventNotificationAlert']['peopleCounting'][0]['exit'][0]),
+    personas_en_clase: (parseInt(result['EventNotificationAlert']['peopleCounting'][0]['enter'][0]) - parseInt(result['EventNotificationAlert']['peopleCounting'][0]['exit'][0])),
+    pass: parseInt(result['EventNotificationAlert']['peopleCounting'][0]['pass'][0])
+  };
+  */
+  var asistencia = clase.data().asistencia;
+  var classRef = db.collection('clases').doc(clase.id);
+  var date_bruto = new Date(registro.fecha.getYear(), registro.fecha.getMonth(), registro.fecha.getDate(), 0, 0, 0);
+  var obj_asist = {};
+  //asistencia is null
+  if(asistencia === null){
+    obj_asist = {
+      fecha: date_bruto,
+      promedio: registro.personas_en_clase
+    };
+    asistencia = new Array();
+    asistencia.push(obj_asist);
+
+    classRef.set({
+      "asistencia": asistencia
+    })
+    .then(function() {
+        //console.log("Document successfully written!");
+        return added();
+    })
+    .catch(function(error) {
+        //console.error("Error writing document: ", error);
+        return null;
+    });
+  }
+  //asistencia date is menor
+  if(date_bruto > asistencia.fecha){
+    obj_asist = {
+      fecha: date_bruto,
+      promedio: registro.personas_en_clase
+    };
+    asistencia.push(obj_asist);
+    classRef.set({
+      "asistencia": asistencia
+    })
+    .then(function() {
+        //console.log("Document successfully written!");
+        return added();
+    })
+    .catch(function(error) {
+        //console.error("Error writing document: ", error);
+        return null;
+    });
+  }
+  //asistencia date is ==
+  if(date_bruto === asistencia.fecha){
+    if(asistencia[asistencia.length].promedio < registro.personas_en_clase)
+    {
+      asistencia[asistencia.length] = {
+        fecha: date_bruto,
+        promedio: registro.personas_en_clase
+      }
+      classRef.update({
+          "asistencia": asistencia
+      })
+      .then(function() {
+          //console.log("Document successfully updated!");
+          return added();
+      }).catch(function(error) {
+        return null;
+      })
+      ;
+      //classRef.asistencia[asistencia.length] = {
+      //  fecha: date_bruto,
+      //  promedio: registro.personas_en_clase
+      //}
+    }
+  }
 }
 
 /*function getSalonByCamara(idCamara, callfinded, callnotfinded){
@@ -235,35 +316,50 @@ function evalAsistencia(clase, registro, date,added){
               });;
 }*/
 
-function getClasesByCam(idcam, dayOfWeek, callfinded, callnotfinded){
+function getClasesByCam(idcam, dayOfWeek, callfinded){
+  console.log('getClasesByCam '+idcam);
   var docRefClases = db.collection('clases');
   docRefClases.where('cam_id','==',idcam)
               //.where()
-              .where("diasClase", "array-contains", weekDays[dayOfWeek]).get()
-              .then(doc=>{
-                if (doc.exists) {
-                  return callfinded(doc);
+              //.where("diasClase", "array-contains", weekDays[dayOfWeek])
+              .get()
+              .then(querySnapshot=>{
+                console.log('getClasesByCam callfinded');
+                console.log(querySnapshot);
+                /*querySnapshot.forEach(function(doc) {
+                    // doc.data() is never undefined for query doc snapshots
+                    console.log(doc.id, " => ", doc.data());
+                });*/
+                /*if (querySnapshot.length > 0) {
+                  console.log('querySnapshot +');
+
                 }else{
+                  console.log('querySnapshot -');
                   return callnotfinded();
-                }
-              });
+                }*/
+                return callfinded(querySnapshot);
+              }).catch(function(error) {
+                return null;
+              })
+              ;
 }
 
 function getClassOfRow(idcam, dayOfWeek, dateRow, callfinded, callnotfinded){
+  console.log('getClassOfRow');
   var hora_row_mili = dameHoraMiliOfstrDt(dateRow);
   getClasesByCam(idcam, dayOfWeek,
      function(docs){
+       //console.log(docs.length);
        docs.forEach(function (doc) {
          var iniMili =  horaClassMili(doc.data().h_final);
          var finMili =  horaClassMili(doc.data().h_inicio);
-         if(iniMili <= hora_row_mili && finMili >= hora_row_mili){
-           return doc;
-         }
+         console.log("dammed here");
          console.log(doc);
+         if(iniMili <= hora_row_mili && finMili >= hora_row_mili && doc.data().diasClase.includes(dayOfWeek)){
+           return callfinded(doc);
+         }
       });
-     },
-     function(){
-       return null;
+      return callnotfinded();
      }
   );
 }
