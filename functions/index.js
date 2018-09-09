@@ -9,15 +9,6 @@ const db = admin.firestore();
 const interval = 10;
 const weekDays = ['dom','lun','mar','mie','jue','vie','sab'];
 
-//const serviceAccount = require("./My-Service.json");
-
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
-
 exports.keepStats  = functions.https.onRequest((req, res) => {
   console.log("Dunked");
   console.log(req);
@@ -26,10 +17,6 @@ exports.keepStats  = functions.https.onRequest((req, res) => {
   let xmlData = data.toString();
   let parser = new xml2js.Parser();
   //https://stackoverflow.com/questions/10904448/node-to-parse-xml-using-xml2js
-  /*res.status(200).json({
-    message:"It worked",
-    message_bruto: xmlData
-  });*/
   parser.parseString(xmlData, function(err,result){
     if (err) {
       res.status(500).json(err);
@@ -62,22 +49,28 @@ exports.keepStats  = functions.https.onRequest((req, res) => {
         cameraAddInfo(id_cam, obj_info, function(){
           getClassOfRow(id_cam, weekDays[date_registro.getDay()], strDateRow,
             function(docy){
-
+              console.log('docku');
+              console.log(docy.id);
+              console.log(docy.data().h_inicio);
+              var keyClass = dameKeyRegistro(strDateRow, docy.data().h_inicio);
               claseAddIngresos(
                           docy,
                           obj_info,
-                          dameKeyRegistro(strDateRow, docy.getData().h_inicio),
-                          function(){
+                          keyClass,
+                          function(clase, obj){
                             //aca eval assitencia
-                            evalAsistencia(docy, obj_info, function(){
+                            evalAsistencia(clase, obj_info, function(){
                               return responsegood(res);
                             });
+                          },
+                          function(err){
+                            return responseError(res, err);
                           }
                         );
 
             },
             function(){
-              return null;
+              return responseNotFinded(res);
             }
           );
 
@@ -96,29 +89,34 @@ exports.keepStats  = functions.https.onRequest((req, res) => {
             cameraAddInfo(id_cam, obj_info, function(){
               getClassOfRow(id_cam, weekDays[date_registro.getDay()], strDateRow,
                 function(docy){
+                  console.log('docku 2');
+                  var keyClass = dameKeyRegistro(strDateRow, docy.data().h_inicio);
                   claseAddIngresos(
                               docy,
                               obj_info,
-                              dameKeyRegistro(strDateRow, docy.getData().h_inicio),
-                              function(){
+                              keyClass,
+                              function(clase, obj){
                                 //aca eval assitencia
-                                evalAsistencia(docy, obj_info, function(){
+                                evalAsistencia(clase, obj_info, function(){
                                   return responsegood(res);
                                 });
 
+                              },
+                              function(err){
+                                return responseError(res, err);
                               }
                             );
                 },
                 function(){
-                  return null;
+                  return responseNotFinded(res);
                 }
               );
 
-              responsegood(res);
+              return responsegood(res);
             });
 
           }, function(){
-            return null;
+            return responseNotFinded(res);
           });
         })
       })
@@ -153,6 +151,16 @@ function responsegood(res){
                   });
 }
 
+function responseNotFinded(res){
+  return res.status(204).json({
+                    message:"not finded null exit"
+                  });
+}
+
+function responseError(res, err){
+  return res.status(500).json(err);
+}
+
 function convertJsonDateToDate(jsonDate){
   return new Date(jsonDate.substr(0,19))
 }
@@ -182,6 +190,7 @@ function horaClassMili(strHora){
 }
 
 function dameKeyRegistro(jsonDate, strIni){
+  console.log('dameKeyRegistro');
   var arr1 = jsonDate.split('T');
   return arr1[0]+strIni;
 }
@@ -198,145 +207,161 @@ function cameraAddInfo(idCamara, info, added){
       });
 }
 
-function claseAddIngresos(clase, registro, keyreg, added){
+function claseAddIngresos(clase, registro, keyreg, added, fail){
+  console.log('claseAddIngresos');
+  console.log(clase.id);
   var classRef = db.collection('clases').doc(clase.id);
-  classRef.collection('ingresos').doc(keyreg).collection('ingresosXdia')
-    .set(registro)
-      .then(ans=>{
-        return added(ans);
-      })
-      .catch(err=>{
-        console.log(err);
-        return null;
-      });
+  var ingresos;
+  getIngresosClases(
+    clase,
+    keyreg,
+    function(doc){
+      ingresos = {
+        ingresosXdia: doc.data().ingresosXdia
+      };
+
+      ingresos.ingresosXdia.push(registro);
+        classRef.collection('ingresos').doc(keyreg)
+          .set(ingresos)
+          .then(obj=>{
+            console.log('claseAddIngresos +');
+            return added(clase, obj);
+          })
+          .catch(err=>{
+            console.log('claseAddIngresos -');
+            return fail(err);
+          });
+    },
+    function(){
+      ingresos = {
+        ingresosXdia: []
+      };
+
+      ingresos.ingresosXdia.push(registro);
+        classRef.collection('ingresos').doc(keyreg)
+          .set(ingresos)
+          .then(obj=>{
+            console.log('claseAddIngresos +');
+            return added(obj);
+          })
+          .catch(err=>{
+            console.log('claseAddIngresos -');
+            return fail(err);
+          });
+    }
+  );
+}
+
+function getIngresosClases(clase, keyIngresos, callfinded, callnotfinded){
+  console.log('getIngresosClases');
+  var classRef = db.collection('clases').doc(clase.id);
+  console.log('keyIngresos');
+  console.log(keyIngresos);
+  classRef.collection('ingresos').doc(keyIngresos).get()
+          .then(
+            doc => {
+              if (doc.exists) {
+                console.log('getIngresosClases +');
+                return callfinded(doc);
+              }else{
+                console.log('getIngresosClases -');
+                return callnotfinded();
+              }
+            }
+          ).catch(
+              err=>{
+                console.log('getIngresosClases fail');
+                console.log(err);
+              if (err) {
+                 console.log(err);
+              }
+              return callnotfinded();
+            }
+          );
 }
 
 function evalAsistencia(clase, registro, added){
-  /*
-  obj_info = {
-    fecha: date_registro,
-    ingresaron: parseInt(result['EventNotificationAlert']['peopleCounting'][0]['enter'][0]),
-    salieron: parseInt(result['EventNotificationAlert']['peopleCounting'][0]['exit'][0]),
-    personas_en_clase: (parseInt(result['EventNotificationAlert']['peopleCounting'][0]['enter'][0]) - parseInt(result['EventNotificationAlert']['peopleCounting'][0]['exit'][0])),
-    pass: parseInt(result['EventNotificationAlert']['peopleCounting'][0]['pass'][0])
-  };
-  */
   var asistencia = clase.data().asistencia;
   var classRef = db.collection('clases').doc(clase.id);
-  var date_bruto = new Date(registro.fecha.getYear(), registro.fecha.getMonth(), registro.fecha.getDate(), 0, 0, 0);
+  var date_bruto = new Date(registro.fecha.getFullYear(), registro.fecha.getMonth(), registro.fecha.getDate(), 0, 0, 0);
   var obj_asist = {};
+  var new_data = clase.data();
   //asistencia is null
-  if(asistencia === null){
+  if(asistencia === undefined){
     obj_asist = {
       fecha: date_bruto,
       promedio: registro.personas_en_clase
     };
-    asistencia = new Array();
-    asistencia.push(obj_asist);
 
-    classRef.set({
-      "asistencia": asistencia
-    })
-    .then(function() {
-        //console.log("Document successfully written!");
-        return added();
-    })
-    .catch(function(error) {
-        //console.error("Error writing document: ", error);
-        return null;
-    });
-  }
-  //asistencia date is menor
-  if(date_bruto > asistencia.fecha){
-    obj_asist = {
-      fecha: date_bruto,
-      promedio: registro.personas_en_clase
-    };
-    asistencia.push(obj_asist);
-    classRef.set({
-      "asistencia": asistencia
-    })
-    .then(function() {
-        //console.log("Document successfully written!");
-        return added();
-    })
-    .catch(function(error) {
-        //console.error("Error writing document: ", error);
-        return null;
-    });
-  }
-  //asistencia date is ==
-  if(date_bruto === asistencia.fecha){
-    if(asistencia[asistencia.length].promedio < registro.personas_en_clase)
+    new_data.asistencia = new Array();
+    new_data.asistencia.push(obj_asist);
+
+    classRef.set(new_data)
+            .then(function() {
+                return added();
+            })
+            .catch(function(error) {
+                return null;
+            });
+  }else{
+    //asistencia date is menor
+    var comparisson = compareDatesAsistencia(asistencia[asistencia.length - 1].fecha, date_bruto);
+    if(comparisson > 0)
     {
-      asistencia[asistencia.length] = {
+      obj_asist = {
         fecha: date_bruto,
         promedio: registro.personas_en_clase
+      };
+      asistencia.push(obj_asist);
+      new_data.asistencia = asistencia;
+
+      classRef.set(new_data)
+              .then(function() {
+                  return added();
+              })
+              .catch(function(error) {
+                  return null;
+              });
+    }
+
+    if(comparisson === 0)
+    {
+      if(asistencia[asistencia.length-1].promedio < registro.personas_en_clase)
+      {
+        asistencia[asistencia.length-1] = {
+          fecha: new Date(new_data.asistencia[asistencia.length-1].fecha),
+          promedio: registro.personas_en_clase
+        };
+        new_data.asistencia = asistencia;
+        classRef.set(new_data)
+          .then(function() {
+              return added();
+          })
+          .catch(function(error) {
+            return null;
+          })
+          ;
+
       }
-      classRef.update({
-          "asistencia": asistencia
-      })
-      .then(function() {
-          //console.log("Document successfully updated!");
-          return added();
-      }).catch(function(error) {
-        return null;
-      })
-      ;
-      //classRef.asistencia[asistencia.length] = {
-      //  fecha: date_bruto,
-      //  promedio: registro.personas_en_clase
-      //}
     }
   }
+
 }
 
-/*function getSalonByCamara(idCamara, callfinded, callnotfinded){
-  var docRefSalones = db.collection('salones');
-  docRefSalones.where('idCam', '==', idCamara).get()
-    .then(doc=>{
-      if (doc.exists) {
-        return callfinded(doc);
-      }else{
-        return callnotfinded();
-      }
-    });
-}*/
+function compareDatesAsistencia(assitDateStamp, brutoDate){
+  var dateStamp = new Date(assitDateStamp);
+  var dateA = new Date(dateStamp.getFullYear(), dateStamp.getMonth(), dateStamp.getDate());
+  var dateB = new Date(brutoDate.getFullYear(), brutoDate.getMonth(), brutoDate.getDate());
 
-/*function getClasesBySalonByDayOfWeek(idSalon, dayOfWeek, callfinded, callnotfinded){
-  var docRefClases = db.collection('clases');
-  docRefClases.where('salon_id','==',idSalon)
-              .where("diasClase", "array-contains", dayOfWeek).get()
-              .then(doc=>{
-                if (doc.exists) {
-                  return callfinded(doc);
-                }else{
-                  return callnotfinded();
-                }
-              });;
-}*/
+  return dateB.getTime()-dateA.getTime();
+}
 
 function getClasesByCam(idcam, dayOfWeek, callfinded){
-  console.log('getClasesByCam '+idcam);
+  //console.log('getClasesByCam '+idcam);
   var docRefClases = db.collection('clases');
   docRefClases.where('cam_id','==',idcam)
-              //.where()
-              //.where("diasClase", "array-contains", weekDays[dayOfWeek])
               .get()
               .then(querySnapshot=>{
-                console.log('getClasesByCam callfinded');
-                console.log(querySnapshot);
-                /*querySnapshot.forEach(function(doc) {
-                    // doc.data() is never undefined for query doc snapshots
-                    console.log(doc.id, " => ", doc.data());
-                });*/
-                /*if (querySnapshot.length > 0) {
-                  console.log('querySnapshot +');
-
-                }else{
-                  console.log('querySnapshot -');
-                  return callnotfinded();
-                }*/
                 return callfinded(querySnapshot);
               }).catch(function(error) {
                 return null;
@@ -345,47 +370,26 @@ function getClasesByCam(idcam, dayOfWeek, callfinded){
 }
 
 function getClassOfRow(idcam, dayOfWeek, dateRow, callfinded, callnotfinded){
-  console.log('getClassOfRow');
+  //console.log('getClassOfRow');
   var hora_row_mili = dameHoraMiliOfstrDt(dateRow);
   getClasesByCam(idcam, dayOfWeek,
-     function(docs){
-       //console.log(docs.length);
-       docs.forEach(function (doc) {
-         var iniMili =  horaClassMili(doc.data().h_final);
-         var finMili =  horaClassMili(doc.data().h_inicio);
-         console.log("dammed here");
-         console.log(doc);
-         if(iniMili <= hora_row_mili && finMili >= hora_row_mili && doc.data().diasClase.includes(dayOfWeek)){
-           return callfinded(doc);
-         }
-      });
-      return callnotfinded();
+     function(querySnapshot){
+       if(querySnapshot.size > 0){
+         querySnapshot.forEach(function (doc) {
+           var iniMili = horaClassMili(doc.data().h_inicio);
+           var finMili = horaClassMili(doc.data().h_final);
+           if(iniMili <= hora_row_mili && finMili >= hora_row_mili && doc.data().diasClase.includes(dayOfWeek)){
+             //console.log('getClassOfRow +');
+             return callfinded(doc);
+           }
+         });
+
+         return callnotfinded();
+
+       }else{
+         console.log('getClassOfRow -');
+         return callnotfinded();
+       }
      }
   );
 }
-/*
-function getClaseBySalonXDate(idSalon, date, callfinded, callnotfinded){
-  getClasesBySalon(
-    idSalon,
-    function(){
-    },
-    function(){
-    }
-  );
-}
-*/
-/*
-function convertJsonDateToDate(jsonDate){
- //console.log(JSON.stringify(new Date()));
- var arr1 = jsonDate.split('T');
-  var arr_big = arr1[0].split('-');
-  var arr_pres = arr1[1].split(':');
-  var seconds = arr_pres[2].split('-');
-  //return new Date(jsonDate.substr(0,19));
-  console.log(arr_big);
-  console.log(arr_pres);
-  console.log(seconds);
-  console.log(parseInt(arr_big[0]), (parseInt(arr_big[1])-1), parseInt(arr_big[2]), parseInt(arr_pres[0]), parseInt(arr_pres[1]), parseInt(seconds[0]), 0);
-  return new Date(parseInt(arr_big[0]), (parseInt(arr_big[1])-1), parseInt(arr_big[2]), parseInt(arr_pres[0]), parseInt(arr_pres[1]), parseInt(seconds[0]), 0)
-}
-*/
