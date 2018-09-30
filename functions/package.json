@@ -10,10 +10,15 @@
     "logs": "firebase functions:log"
   },
   "dependencies": {
+    "cors": "^2.8.4",
     "firebase-admin": "~6.0.0",
     "firebase-functions": "^2.0.3",
+<<<<<<< HEAD
     "cors": "^2.8.1",
     "moment": "^2.17.1"
+=======
+    "xml2js": "^0.4.19"
+>>>>>>> 47730e49d002e3e12b08d199f248ba14cc330fc7
   },
   "devDependencies": {
     "eslint": "^4.12.0",

@@ -449,7 +449,7 @@ desired effect
     //save
     function save()
     {
-      var _region = $('#country_txt').val()
+      var _name = $('#country_txt').val()
       var _cam = $('#cam_txt option:selected').text();
       //var _capMax = $('#capMax_txt').val()
 
@@ -465,7 +465,7 @@ desired effect
 
 
         docRefActual.add({
-            nombre:_region,
+            nombre:_name,
             idCam:_cam,
             //capMax:_capMax,
 
@@ -480,7 +480,7 @@ desired effect
             sede_id:  _item_sede_id
 
             }).then(function(docRef) {
-                docRefCam.doc(_cam).update({asignada:true, salon_actual: docRef.id}).then(function(){
+                docRefCam.doc(_cam).update({asignada:true, salon_actual: docRef.id, nombre_Salon:_name}).then(function(){
                   window.location.reload()
                 })
             })

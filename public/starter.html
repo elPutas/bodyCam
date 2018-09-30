@@ -85,7 +85,7 @@ desired effect
   <header class="main-header">
 
     <!-- Logo -->
-    <a href="index2.html" class="logo">
+    <a href="starter.html" class="logo">
       <!-- mini logo for sidebar mini 50x50 pixels -->
       <span class="logo-mini"><b>A</b>LM</span>
       <!-- logo for regular state and mobile devices -->
@@ -263,7 +263,7 @@ desired effect
               <p>CLASES TOTALES CREADAS</p>
             </div>
             <div class="icon">
-              <i class="ion ion-bag"></i>
+              <i class="ion ion-calendar"></i>
             </div>
               <a class="small-box-footer"></a>
           </div>
@@ -273,12 +273,12 @@ desired effect
           <!-- small box -->
           <div class="small-box bg-green">
             <div class="inner">
-              <h3>53<sup style="font-size: 20px">%</sup></h3>
+              <h3 id="promedio_clases">0<sup style="font-size: 20px">%</sup></h3>
 
               <p>TASA DE OCUPACIÓN</p>
             </div>
             <div class="icon">
-              <i class="ion ion-stats-bars"></i>
+              <i class="ion ion-pie-graph"></i>
             </div>
               <a class="small-box-footer"></a>
           </div>
@@ -293,7 +293,7 @@ desired effect
               <p>PROFESORES TOTALES</p>
             </div>
             <div class="icon">
-              <i class="ion ion-person-add"></i>
+              <i class="ion ion-ios-body"></i>
             </div>
             <a class="small-box-footer"></a>
           </div>
@@ -303,12 +303,12 @@ desired effect
           <!-- small box -->
           <div class="small-box bg-red">
             <div class="inner">
-              <h3>65</h3>
+              <h3 id="num_cam">0</h3>
 
-              <p>TOTAL ASISTENCIAS MES</p>
+              <p>TOTAL CÁMARAS</p>
             </div>
             <div class="icon">
-              <i class="ion ion-pie-graph"></i>
+              <i class="ion ion-ios-videocam"></i>
             </div>
             <a class="small-box-footer"></a>
           </div>
@@ -469,6 +469,7 @@ desired effect
     var docRefSalon = db.collection('salones')
     var docRefClase = db.collection('clases')
     var docRefProfesor = db.collection('profesores')
+    var docRefCam = db.collection('camaras')
 
     var paisSelected = ""
     var regionSelected = ""
@@ -733,6 +734,17 @@ desired effect
           $(this).val('');
       });
 
+      //load cameras
+      docRefCam.get().then(function(querySnapshot) {
+        numCam=0
+          querySnapshot.forEach(function(doc) {
+            numCam++
+            $('#num_cam').html(numCam)
+
+          });
+      });
+
+
 
 
 
@@ -860,6 +872,8 @@ desired effect
             });
         });
       });
+
+
 
       $('#item_ciudad').on('change', function() {
         //load cities
@@ -1046,12 +1060,15 @@ desired effect
       //load info clases
       var numClases
       var numProf
+      var numCam
       function stats()
       {
         numClases = 0
         numProf = 0
+        numCam = 0
         $('#clases_creadas').html(numClases)
         $('#num_profesores').html(numProf)
+        $('#num_cam').html(numCam)
 
 
 
@@ -1099,9 +1116,19 @@ desired effect
         else
           docFiltered = queryProfesor
 
+        queryProfesor.get().then(function(querySnapshot){
+          numProf = 0
+          querySnapshot.forEach(function(doc) {
+            numProf++
+            $('#num_profesores').html(numProf)
+          })
+        })
+
+
         queryClases.get().then(function(querySnapshot) {
           arrData = []
-
+          var prom = 0
+          var superProm = 0
 
             querySnapshot.forEach(function(doc) {
               numClases++
@@ -1117,16 +1144,28 @@ desired effect
               var _arr = doc.data().asistencias
 
               var arr2 = []
+
+              var txtProm
+
               if(_arr)
               {
                 for(var i=0; i<_arr.length; i++)
                 {
+                  var _tempNum = new Number(_arr[i].promedio)
+                  prom += _tempNum
                     arr2.push(_arr[i].promedio)
 
                 }
+                var _tempNumObjetivo = new Number(doc.data().objetivo)
+                _tempNumObjetivo = _tempNumObjetivo*_arr.length
+                txtProm = Math.round(((prom/_arr.length) / _tempNumObjetivo)*100)
               }
 
-              console.log("_arr",arr2);
+
+              console.log("prom",txtProm);
+
+              if(txtProm!=undefined)
+                superProm += txtProm
 
               var div = '<tr>\n' +
                   '                            <td>'+_pais+'</td>\n' +
@@ -1171,10 +1210,16 @@ desired effect
 
               arrData.push(obj)
 
-              numProf++
-              $('#num_profesores').html(numProf)
+
             });
 
+
+            var promTotal = Math.round(superProm/numClases)
+            if(isNaN(promTotal))
+            {
+              promTotal =0
+            }
+            $('#promedio_clases').html(promTotal+"%")
             createChart(arrRange, arrData)
         });
 
