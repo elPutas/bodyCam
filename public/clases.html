@@ -291,6 +291,7 @@ desired effect
           <tbody id="bodyTable">
           <tr>
               <th>Clases</th>
+              <th>Día</th>
               <th>Hora inicio</th>
               <th>Hora final</th>
               <th>Salón</th>
@@ -558,9 +559,11 @@ desired effect
                 var _pais = doc.data().pais
                 var _profesor = doc.data().profesor
                 var _sede = doc.data().sede
+                var _dia = doc.data().diasClase + ""
 
                 var div = '<tr>\n' +
                     '                            <td>'+_title+'</td>\n' +
+                    '                            <td>'+_dia+'</td>\n' +
                     '                            <td>'+_hInicio+'</td>\n' +
                     '                            <td>'+_hFinal+'</td>\n' +
                     '                            <td>'+_salon+'</td>\n' +
