@@ -340,6 +340,8 @@ desired effect
                 <th>Sede</th>
                 <th>Salón</th>
                 <th>Clase</th>
+                <th>Días</th>
+                <th>Horario</th>
                 <th style="width: 300px">Asistencia</th>
               </tr>
               </thead>
@@ -1004,7 +1006,7 @@ desired effect
       });
 
       $('#item_salon').on('change', function() {
-        //load cities
+
         var _item_link = $( "#item_salon option:selected" ).text()
 
         salonSelected = _item_link
@@ -1046,10 +1048,19 @@ desired effect
         });
       });
 
-      $('#item_clase').on('change', function() {
-        //load cities
-        var _item_link = $( "#item_salon option:selected" ).text()
 
+
+
+      $('#item_clase').on('change', function()
+      {
+
+        $("#bodyTable")
+        .find('td')
+        .remove()
+        .end()
+
+        //load cities
+        var _item_link = $( "#item_clase option:selected" ).text()
 
         claseSelected = _item_link
         stats()
@@ -1102,6 +1113,11 @@ desired effect
           queryClases = docRefClase.where("salon", "==", salonSelected)
         }
 
+        if(claseSelected!="")
+        {
+          queryClases = docRefClase.where("nombre", "==", claseSelected)
+        }
+
 
         if(profesorSelected!="")
         {
@@ -1142,6 +1158,8 @@ desired effect
               var _salon = doc.data().salon
               var _clase = doc.data().nombre
               var _arr = doc.data().asistencias
+              var _dia = doc.data().diasClase + ""
+              var _hora = doc.data().h_inicio
 
               var arr2 = []
 
@@ -1174,6 +1192,8 @@ desired effect
                   '                            <td>'+_sede+'</td>\n' +
                   '                            <td>'+_salon+'</td>\n' +
                   '                            <td>'+_clase+'</td>\n' +
+                  '                            <td>'+_dia+'</td>\n' +
+                  '                            <td>'+_hora+'</td>\n' +
                   '                            <td>' +
                   '                               <div id="sparkbar'+numClases+'">'+arr2+'</div>'+
                   '                             </td>'+
