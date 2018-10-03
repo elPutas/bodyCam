@@ -396,7 +396,8 @@ desired effect
           })
 
 
-          $('#item_pais').on('change', function() {
+          $('#item_pais').on('change', function()
+          {
             //load cities
             var _item_link = $( "#item_pais option:selected" ).text()
             $("#item_region")
@@ -437,6 +438,25 @@ desired effect
                 });
 
             });
+
+            docRefProfesores.where("pais", "==", _item_link).get().then(function(querySnapshot) {
+              $("#item_profesor").append('<option value="noSeleccionado">Selecciona</option>')
+                querySnapshot.forEach(function(doc) {
+                    // doc.data() is never undefined for query doc snapshots
+                    //console.log(doc.id, " => ", doc.data());
+
+                    var _title = doc.data().nombre
+                    var _id = doc.id
+
+                    var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                    $("#item_profesor").append(div)
+                    //console.log("value: ",$("#item_pais").val());
+
+                });
+            });
+
+
           });
 
           $('#item_region').on('change', function() {

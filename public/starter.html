@@ -339,6 +339,7 @@ desired effect
                 <th>Ciudad</th>
                 <th>Sede</th>
                 <th>Salón</th>
+                <th>Profesor</th>
                 <th>Clase</th>
                 <th>Días</th>
                 <th>Horario</th>
@@ -813,6 +814,28 @@ desired effect
             });
 
         });
+
+
+        docRefClase.where("pais", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
+          $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+
+                var _title = doc.data().nombre
+                var _timeS = doc.data().h_inicio
+                var _timeF = doc.data().h_final
+
+                var _fullTitle = _title + " de (" + _timeS + "-" + _timeF +")"
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_clase").append(div)
+                //console.log("value: ",$("#item_link").val());
+
+            });
+        });
       });
 
       $('#item_region').on('change', function() {
@@ -857,7 +880,9 @@ desired effect
         .end()
 
         stats()
-        docRefCiudad.where("region", "==", _item_link).get().then(function(querySnapshot) {
+        docRefCiudad.where("region", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
           $("#item_ciudad").append('<option value="noSeleccionado">Selecciona</option>')
             querySnapshot.forEach(function(doc) {
                 // doc.data() is never undefined for queryClases doc snapshots
@@ -870,6 +895,27 @@ desired effect
 
                 $("#item_ciudad").append(div)
                 //console.log("value: ",$("#item_pais").val());
+
+            });
+        });
+
+        docRefClase.where("region", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
+          $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+
+                var _title = doc.data().nombre
+                var _timeS = doc.data().h_inicio
+                var _timeF = doc.data().h_final
+
+                var _fullTitle = _title + " de (" + _timeS + "-" + _timeF +")"
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_clase").append(div)
+                //console.log("value: ",$("#item_link").val());
 
             });
         });
@@ -944,6 +990,27 @@ desired effect
             });
         });
 
+        docRefClase.where("ciudad", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
+          $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+
+                var _title = doc.data().nombre
+                var _timeS = doc.data().h_inicio
+                var _timeF = doc.data().h_final
+
+                var _fullTitle = _title + " de (" + _timeS + "-" + _timeF +")"
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_clase").append(div)
+                //console.log("value: ",$("#item_link").val());
+
+            });
+        });
+
 
 
       });
@@ -963,7 +1030,8 @@ desired effect
         stats()
       })
 
-      $('#item_sede').on('change', function() {
+      $('#item_sede').on('change', function()
+      {
         //load sedes
         var _item_link = $( "#item_sede option:selected" ).text()
 
@@ -989,7 +1057,9 @@ desired effect
 
         stats()
 
-        docRefSalon.where("sede", "==", _item_link).get().then(function(querySnapshot) {
+        docRefSalon.where("sede", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
           $("#item_salon").append('<option value="noSeleccionado">Selecciona</option>')
             querySnapshot.forEach(function(doc) {
 
@@ -1003,6 +1073,33 @@ desired effect
 
             });
         });
+
+
+        docRefClase.where("sede", "==", _item_link)
+        .get()
+        .then(function(querySnapshot)
+        {
+          $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc)
+             {
+
+                var _title = doc.data().nombre
+                var _timeS = doc.data().h_inicio
+                var _timeF = doc.data().h_final
+
+                var _fullTitle = _title + " de (" + _timeS + "-" + _timeF +")"
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_clase").append(div)
+                //console.log("value: ",$("#item_link").val());
+
+            });
+        });
+
+
+
       });
 
       $('#item_salon').on('change', function() {
@@ -1159,7 +1256,10 @@ desired effect
               var _clase = doc.data().nombre
               var _arr = doc.data().asistencias
               var _dia = doc.data().diasClase + ""
-              var _hora = doc.data().h_inicio
+              var _timeS = doc.data().h_inicio
+              var _timeF = doc.data().h_final
+              var _prof = doc.data().profesor
+              var _hora = _timeS + " - " + _timeF
 
               var arr2 = []
 
@@ -1191,6 +1291,7 @@ desired effect
                   '                            <td>'+_ciudad+'</td>\n' +
                   '                            <td>'+_sede+'</td>\n' +
                   '                            <td>'+_salon+'</td>\n' +
+                  '                            <td>'+_prof+'</td>\n' +
                   '                            <td>'+_clase+'</td>\n' +
                   '                            <td>'+_dia+'</td>\n' +
                   '                            <td>'+_hora+'</td>\n' +
