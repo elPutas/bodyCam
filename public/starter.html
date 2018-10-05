@@ -390,7 +390,7 @@ desired effect
 
                 <div class="chart">
                   <!-- Sales Chart Canvas -->
-                  <canvas id="salesChart" width="300" height="200" style="height:  200px;"></canvas>
+                  <canvas id="salesChart" width="300" height="600" style="height:  200px;"></canvas>
                 </div>
                 <!-- /.chart-responsive -->
               </div>
@@ -586,21 +586,37 @@ desired effect
        })
     }
 
+
+
     function callCreateCharts()
     {
-      queryClases.get().then(function(querySnapshot) {
-        arrData=[]
-          querySnapshot.forEach(function(doc) {
+      queryClases.get().then(function(querySnapshot)
+      {
+          arrData=[]
+          var numDay=0
+          querySnapshot.forEach(function(doc)
+          {
+
+              var arrP = []
+              var arrD = []
 
               var _title = doc.data().nombre
-              var _arr = doc.data().asistencias
+              var _arr = doc.data().asistencia
 
-              var arr2 = []
+
               if(_arr)
               {
-                for(var i=0; i<_arr.length; i++)
+                for(var i=0; i<arrRange.length; i++)
                 {
-                    arr2.push(_arr[i].promedio)
+                    var _d = _arr[0].fecha.seconds
+                    arrD.push(_arr[0].fecha)
+                    if(arrRange[i] == moment.utc(_d*1000).format('D MMMM YYYY') )
+                    {
+                        arrP.push(_arr[0].promedio)
+                    }else{
+                      arrP.push(0)
+                    }
+
                 }
               }
 
@@ -610,10 +626,11 @@ desired effect
               var obj = {
                 label               : _title,
                 fillColor           : color,
-                data                : arr2,
+                data                : arrP,
+                date                : arrD,
                 backgroundColor: color,
               }
-
+              numDay++
               arrData.push(obj)
 
           });
@@ -650,7 +667,7 @@ desired effect
                 ticks: {
                             beginAtZero: true,
                             steps: 20,
-                            stepValue: 5,
+                            stepValue: 1,
                             max: 50
                         }
             }]
@@ -1254,7 +1271,7 @@ desired effect
               var _sede = doc.data().sede
               var _salon = doc.data().salon
               var _clase = doc.data().nombre
-              var _arr = doc.data().asistencias
+              var _arr = doc.data().asistencia
               var _dia = doc.data().diasClase + ""
               var _timeS = doc.data().h_inicio
               var _timeF = doc.data().h_final
@@ -1269,21 +1286,22 @@ desired effect
               {
                 for(var i=0; i<_arr.length; i++)
                 {
-                  var _tempNum = new Number(_arr[i].promedio)
-                  prom += _tempNum
+                    var _tempNum = new Number(_arr[i].promedio)
+                    prom += _tempNum
                     arr2.push(_arr[i].promedio)
 
                 }
                 var _tempNumObjetivo = new Number(doc.data().objetivo)
                 _tempNumObjetivo = _tempNumObjetivo*_arr.length
                 txtProm = Math.round(((prom/_arr.length) / _tempNumObjetivo)*100)
+                //console.log("txtProm",txtProm);
               }
 
 
-              console.log("prom",txtProm);
+              //console.log("prom",txtProm);
 
               if(txtProm!=undefined)
-                superProm += txtProm
+                superProm = txtProm
 
               var div = '<tr>\n' +
                   '                            <td>'+_pais+'</td>\n' +
@@ -1308,16 +1326,27 @@ desired effect
 
 
               var _title = doc.data().nombre
-              var _arr = doc.data().asistencias
+              var _arr = doc.data().asistencia
 
-              var arr2 = []
+              var arrP = []
+              var arrD = []
               if(_arr)
               {
-                for(var i=0; i<_arr.length; i++)
+                for(var i=0; i<arrRange.length; i++)
                 {
-                    arr2.push(_arr[i].promedio)
+                    var _d = _arr[0].fecha.seconds
+                    arrD.push(_arr[0].fecha)
+                    if(arrRange[i] == moment.utc(_d*1000).format('D MMMM YYYY') )
+                    {
+                        arrP.push(_arr[0].promedio)
+                    }else{
+                      arrP.push(0)
+                    }
+
                 }
               }
+
+
 
 
               var color = getRandomColor()
@@ -1325,7 +1354,8 @@ desired effect
               var obj = {
                 label               : _title,
                 fillColor           : color,
-                data                : arr2,
+                data                : arrP,
+                date                : arrD,
                 backgroundColor: color,
               }
 
@@ -1335,6 +1365,8 @@ desired effect
             });
 
 
+            //console.log("numClases", numClases);
+            //console.log("superProm", superProm);
             var promTotal = Math.round(superProm/numClases)
             if(isNaN(promTotal))
             {
