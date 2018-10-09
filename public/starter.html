@@ -324,7 +324,7 @@ desired effect
         <div class="box-header with-border">
           <h3 class="box-title">Clases por asistencias</h3>
           <br>
-          <button onclick="fnExcelReport();" type="button" class="btn btn-lg btn-success  pull-right" ><i class="fa fa-file-excel-o"></i> Exportar a Excel
+          <button onclick="fnExcelReport();" type="button" class="btn btn-md btn-success" ><i class="fa fa-file-excel-o"></i> Exportar a Excel
           </button>
           <div class="box-tools pull-right">
             <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
@@ -1423,39 +1423,39 @@ desired effect
     {
 
       var tab_text = '<table border="1px" style="font-size:20px" ">';
-    var textRange;
-    var j = 0;
-    var tab = document.getElementById('exportTable'); // id of table
-    var lines = tab.rows.length;
+      var textRange;
+      var j = 0;
+      var tab = document.getElementById('exportTable'); // id of table
+      var lines = tab.rows.length;
 
-    // the first headline of the table
-    if (lines > 0) {
-        tab_text = tab_text + '<tr bgcolor="#DFDFDF">' + tab.rows[0].innerHTML + '</tr>';
-    }
+      // the first headline of the table
+      if (lines > 0) {
+          tab_text = tab_text + '<tr bgcolor="#DFDFDF">' + tab.rows[0].innerHTML + '</tr>';
+      }
 
-    // table data lines, loop starting from 1
-    for (j = 1 ; j < lines; j++) {
-        tab_text = tab_text + "<tr>" + tab.rows[j].innerHTML + "</tr>";
-    }
+      // table data lines, loop starting from 1
+      for (j = 1 ; j < lines; j++) {
+          tab_text = tab_text + "<tr>" + tab.rows[j].innerHTML + "</tr>";
+      }
 
-    tab_text = tab_text + "</table>";
-     console.log(tab_text); // aktivate so see the result (press F12 in browser)
+      tab_text = tab_text + "</table>";
+       //console.log(tab_text); // aktivate so see the result (press F12 in browser)
 
-    var ua = window.navigator.userAgent;
-    var msie = ua.indexOf("MSIE ");
+      var ua = window.navigator.userAgent;
+      var msie = ua.indexOf("MSIE ");
 
-     // if Internet Explorer
-    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
-        txtArea1.document.open("txt/html","replace");
-        txtArea1.document.write(tab_text);
-        txtArea1.document.close();
-        txtArea1.focus();
-        sa = txtArea1.document.execCommand("SaveAs", true, "DataTableExport.xls");
-    }
-    else // other browser not tested on IE 11
-        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+       // if Internet Explorer
+      if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+          txtArea1.document.open("txt/html","replace");
+          txtArea1.document.write(tab_text);
+          txtArea1.document.close();
+          txtArea1.focus();
+          sa = txtArea1.document.execCommand("SaveAs", true, "DataTableExport.xls");
+      }
+      else // other browser not tested on IE 11
+          sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
 
-    return (sa);
+      return (sa);
 
 
     }
