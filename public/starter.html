@@ -17,6 +17,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase-functions.js"></script>
 
 
+
+
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
@@ -321,7 +323,9 @@ desired effect
       <div class="box box-info">
         <div class="box-header with-border">
           <h3 class="box-title">Clases por asistencias</h3>
-
+          <br>
+          <button onclick="fnExcelReport();" type="button" class="btn btn-lg btn-success  pull-right" ><i class="fa fa-file-excel-o"></i> Exportar a Excel
+          </button>
           <div class="box-tools pull-right">
             <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
             </button>
@@ -331,7 +335,7 @@ desired effect
         <!-- /.box-header -->
         <div class="box-body">
           <div class="table-responsive">
-            <table class="table no-margin">
+            <table class="table no-margin" id="exportTable">
               <thead>
               <tr>
                 <th>País</th>
@@ -342,6 +346,7 @@ desired effect
                 <th>Profesor</th>
                 <th>Clase</th>
                 <th>Días</th>
+                <th>Objetivo</th>
                 <th>Horario</th>
                 <th style="width: 300px">Asistencia</th>
               </tr>
@@ -419,7 +424,7 @@ desired effect
   <!-- /.content-wrapper -->
 
 
-
+<iframe id="txtArea1" style="display:none"></iframe>
 </div>
 <!-- ./wrapper -->
 
@@ -445,6 +450,10 @@ desired effect
 <!-- date-range-picker -->
 <script src="bower_components/moment/min/moment.min.js"></script>
 <script src="bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
+
+
+
+
 <script>
 
 
@@ -1276,6 +1285,7 @@ desired effect
               var _timeS = doc.data().h_inicio
               var _timeF = doc.data().h_final
               var _prof = doc.data().profesor
+              var _obj = doc.data().objetivo
               var _hora = _timeS + " - " + _timeF
 
               var arr2 = []
@@ -1312,7 +1322,10 @@ desired effect
                   '                            <td>'+_prof+'</td>\n' +
                   '                            <td>'+_clase+'</td>\n' +
                   '                            <td>'+_dia+'</td>\n' +
+                  '                            <td>'+_obj+'</td>\n' +
                   '                            <td>'+_hora+'</td>\n' +
+
+
                   '                            <td>' +
                   '                               <div id="sparkbar'+numClases+'">'+arr2+'</div>'+
                   '                             </td>'+
@@ -1406,9 +1419,53 @@ desired effect
 
 
 
+    function fnExcelReport()
+    {
+
+      var tab_text = '<table border="1px" style="font-size:20px" ">';
+    var textRange;
+    var j = 0;
+    var tab = document.getElementById('exportTable'); // id of table
+    var lines = tab.rows.length;
+
+    // the first headline of the table
+    if (lines > 0) {
+        tab_text = tab_text + '<tr bgcolor="#DFDFDF">' + tab.rows[0].innerHTML + '</tr>';
+    }
+
+    // table data lines, loop starting from 1
+    for (j = 1 ; j < lines; j++) {
+        tab_text = tab_text + "<tr>" + tab.rows[j].innerHTML + "</tr>";
+    }
+
+    tab_text = tab_text + "</table>";
+     console.log(tab_text); // aktivate so see the result (press F12 in browser)
+
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf("MSIE ");
+
+     // if Internet Explorer
+    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+        txtArea1.document.open("txt/html","replace");
+        txtArea1.document.write(tab_text);
+        txtArea1.document.close();
+        txtArea1.focus();
+        sa = txtArea1.document.execCommand("SaveAs", true, "DataTableExport.xls");
+    }
+    else // other browser not tested on IE 11
+        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+
+    return (sa);
+
+
+    }
+
+
 
 
 </script>
+
+
 
 <!-- Optionally, you can add Slimscroll and FastClick plugins.
      Both of these plugins are recommended to enhance the
