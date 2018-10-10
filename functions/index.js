@@ -12,7 +12,7 @@ const weekDays = ['dom','lun','mar','mie','jue','vie','sab'];
 exports.keepStats  = functions.https.onRequest((req, res) => {
   console.log("Dunked");
   console.log(req);
-
+  cors(req, res, () => {});
   let data = req.rawBody;
   let xmlData = data.toString();
   let parser = new xml2js.Parser();
@@ -32,7 +32,8 @@ exports.keepStats  = functions.https.onRequest((req, res) => {
         pass: parseInt(result['EventNotificationAlert']['peopleCounting'][0]['pass'][0])
       };
       */
-
+      //var metohodStat = result['EventNotificationAlert']['peopleCounting'][0]['statisticalMethods'][0];
+      // Estadisitica realTime
       var id_cam = result['EventNotificationAlert']['macAddress'][0];
       var strDateRow = result['EventNotificationAlert']['peopleCounting'][0]['RealTime'][0]['time'][0];
       var date_registro = convertJsonDateToDate(strDateRow);
