@@ -158,9 +158,13 @@ desired effect
                     <div class="row">
                       <div class="col-md-12">
                         <div class="form-group">
-                        <label>Nombre de la clase</label>
-                        <input id="name_txt" type="text" placeholder="Clase" class="text-fluid">
-                      </div>
+                          <label>Nombre de la clase</label>
+                          <input id="name_txt" type="text" placeholder="Clase" class="text-fluid">
+                        </div>
+                        <div class="form-group">
+                          <label>Asistencia Objetivo</label>
+                          <input id="obj_txt" type="number" placeholder="Número de asistentes" class="text-fluid">
+                        </div>
                       </div>
                       </div>
 
@@ -200,7 +204,7 @@ desired effect
 
                     <div class="row">
                       <div class="col-md-6">
-                        <label>Hora inicia</label>
+                        <label>Hora que inicia</label>
                           <div class="input-group">
                             <input id="hInicio" type="text" class="form-control timepicker">
 
@@ -212,15 +216,13 @@ desired effect
                         </div>
 
                         <div class="col-md-6">
-                          <label>Hora finaliza</label>
-                          <div class="input-group">
-                            <input id="hFinal" type="text" class="form-control timepicker">
-
-                            <div class="input-group-addon">
-                              <i class="fa fa-clock-o"></i>
-                            </div>
-                          </div>
-
+                          <label>Tipo de clase</label>
+                          <select class="form-control" id="hFinal">
+                            <option value="0">Selecciona</option>
+                            <option value="25">Clase Express</option>
+                            <option value="45">Clase Estandar</option>
+                            <option value="90">Clase Super</option>
+                          </select>
 
                         </div>
 
@@ -289,10 +291,12 @@ desired effect
           <tbody id="bodyTable">
           <tr>
               <th>Clases</th>
+              <th>Día</th>
               <th>Hora inicio</th>
               <th>Hora final</th>
               <th>Salón</th>
               <th>Profesor</th>
+              <th>Sede</th>
 
               <th style="width: 100px"></th>
           </tr>
@@ -325,12 +329,9 @@ desired effect
 <script src="dist/js/adminlte.min.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="dist/js/demo.js"></script>
-<!-- CK Editor -->
-<script src="bower_components/ckeditor/ckeditor.js"></script>
-<!-- Bootstrap WYSIHTML5 -->
-<script src="plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js"></script>
 <!-- bootstrap time picker -->
 <script src="plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script src="https://momentjs.com/downloads/moment-with-locales.js"></script>
 <script>
 
 
@@ -352,7 +353,7 @@ desired effect
     db.settings(settings);
 
     var docRefActual = db.collection('clases')
-    var docRefContent = db.collection('salones')
+    var docRefSalon = db.collection('salones')
 
     var docRefProfesores = db.collection('profesores')
     var docRefPais = db.collection('paises')
@@ -395,7 +396,8 @@ desired effect
           })
 
 
-          $('#item_pais').on('change', function() {
+          $('#item_pais').on('change', function()
+          {
             //load cities
             var _item_link = $( "#item_pais option:selected" ).text()
             $("#item_region")
@@ -436,6 +438,25 @@ desired effect
                 });
 
             });
+
+            docRefProfesores.where("pais", "==", _item_link).get().then(function(querySnapshot) {
+              $("#item_profesor").append('<option value="noSeleccionado">Selecciona</option>')
+                querySnapshot.forEach(function(doc) {
+                    // doc.data() is never undefined for query doc snapshots
+                    //console.log(doc.id, " => ", doc.data());
+
+                    var _title = doc.data().nombre
+                    var _id = doc.id
+
+                    var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                    $("#item_profesor").append(div)
+                    //console.log("value: ",$("#item_pais").val());
+
+                });
+            });
+
+
           });
 
           $('#item_region').on('change', function() {
@@ -522,18 +543,24 @@ desired effect
             .find('option')
             .remove()
             .end()
-            docRefContent.where("sede", "==", _item_link).get().then(function(querySnapshot) {
+            docRefSalon.where("sede", "==", _item_link).get().then(function(querySnapshot) {
                 querySnapshot.forEach(function(doc) {
                     // doc.data() is never undefined for query doc snapshots
                     //console.log(doc.id, " => ", doc.data());
 
                     var _title = doc.data().nombre
                     var _id = doc.id
+                    var _idCam = doc.data().idCam
 
-                    var div = '<option value="'+_id+'">'+_title+'</option>'
+                    var _value = _id+'|'+_idCam
+
+                    var div = '<option value="'+_value+'">'+_title+'</option>'
 
                     $("#item_salon").append(div)
-                    //console.log("value: ",$("#item_pais").val());
+                    var _str = $("#item_salon").val()
+                    var _arr = _str.split("|");
+                    //console.log("id: ",_arr[0]);
+                    //console.log("idCam: ",_arr[1]);
 
                 });
             });
@@ -551,13 +578,17 @@ desired effect
                 var _salon = doc.data().salon
                 var _pais = doc.data().pais
                 var _profesor = doc.data().profesor
+                var _sede = doc.data().sede
+                var _dia = doc.data().diasClase + ""
 
                 var div = '<tr>\n' +
                     '                            <td>'+_title+'</td>\n' +
+                    '                            <td>'+_dia+'</td>\n' +
                     '                            <td>'+_hInicio+'</td>\n' +
                     '                            <td>'+_hFinal+'</td>\n' +
                     '                            <td>'+_salon+'</td>\n' +
                     '                            <td>'+_profesor+'</td>\n' +
+                    '                            <td>'+_sede+'</td>\n' +
 
                     '                            <td>\n' +
                     '                                <div class="btn-group">\n' +
@@ -594,10 +625,33 @@ desired effect
         })
 
 
+        //set final hour class
+        function plusMinutes(stringTime)
+        {
+          var _arr1 = stringTime.split(":")
+          var _arr2 = _arr1[1].split(" ")
+
+          var _h = _arr1[0]
+          var _m = _arr2[0]
+          var _z = _arr2[1]
+
+
+          var _lapse =$('#hFinal').val()
+          var _time = _h +":"+_m+" "+_z
+          var _result = moment.utc(_time,'hh:mm A').add(_lapse,'minutes').format('hh:mm A')
+
+          return _result
+
+        }
+
         //save
         function save()
         {
           var _nombre = $('#name_txt').val()
+          var _objetivo = $('#obj_txt').val()
+
+          var _str = $( "#item_salon" ).val()
+          var _arr = _str.split("|");
 
 
           var _item_pais = $( "#item_pais option:selected" ).text();
@@ -609,22 +663,30 @@ desired effect
           var _item_sede = $( "#item_sede option:selected" ).text();
           var _item_sede_id = $( "#item_sede" ).val();
           var _item_salon = $( "#item_salon option:selected" ).text();
-          var _item_salon_id = $( "#item_salon" ).val();
+          var _item_salon_id = _arr[0]
+          var _cam_id = _arr[1]
           var _item_profesor = $( "#item_profesor option:selected" ).text();
           var _item_profesor_id = $( "#item_profesor" ).val();
+          var _tipoClase =$('#hFinal option:selected' ).text();
+
+
 
           var _hInicio = $("#hInicio").val()
-          var _hFinal = $("#hFinal").val()
+          var _hFinal = plusMinutes(_hInicio)
+
 
 
           if(!isEdit)
           {
             docRefActual.add({
                 nombre:   _nombre,
+                objetivo:   _objetivo,
                 h_inicio: _hInicio,
                 h_final:  _hFinal,
                 diasClase:     arrDays,
+                tipoClase:     _tipoClase,
 
+                cam_id:   _cam_id,
                 pais:     _item_pais,
                 pais_id:  _item_pais_id,
                 ciudad:   _item_ciudad,
@@ -647,10 +709,13 @@ desired effect
             }else {
               docRefActual.doc(idEdit).update({
                   nombre:   _nombre,
+                  objetivo: _objetivo,
                   h_inicio: _hInicio,
                   h_final:  _hFinal,
                   diasClase:     arrDays,
+                  tipoClase:     _tipoClase,
 
+                  cam_id:   _cam_id,
                   pais:     _item_pais,
                   pais_id:  _item_pais_id,
                   ciudad:   _item_ciudad,
@@ -671,7 +736,9 @@ desired effect
                       console.error("Error writing document: ", error);
                   })
             }
+
         }
+
 
         //edit
         function editMe(_this) {
@@ -683,7 +750,7 @@ desired effect
                   $('#myModal').modal('show');
                   $('#name_txt').val(doc.data().nombre)
                   $('#hInicio').val(doc.data().h_inicio)
-                  $('#hFinal').val(doc.data().h_final)
+                  $('#obj_txt').val(doc.data().objetivo)
               } else {
                   // doc.data() will be undefined in this case
                   console.log("No such document!");
@@ -715,7 +782,7 @@ desired effect
           isEdit = false
           $('#name_txt').val("")
           $('#hInicio').val("")
-          $('#hFinal').val("")
+
         }
 
         firebase.auth().onAuthStateChanged(function(user) {

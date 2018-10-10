@@ -17,6 +17,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase-functions.js"></script>
 
 
+
+
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
@@ -85,7 +87,7 @@ desired effect
   <header class="main-header">
 
     <!-- Logo -->
-    <a href="index2.html" class="logo">
+    <a href="starter.html" class="logo">
       <!-- mini logo for sidebar mini 50x50 pixels -->
       <span class="logo-mini"><b>A</b>LM</span>
       <!-- logo for regular state and mobile devices -->
@@ -263,9 +265,9 @@ desired effect
               <p>CLASES TOTALES CREADAS</p>
             </div>
             <div class="icon">
-              <i class="ion ion-bag"></i>
+              <i class="ion ion-calendar"></i>
             </div>
-            <a href="#" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+              <a class="small-box-footer"></a>
           </div>
         </div>
         <!-- ./col -->
@@ -273,14 +275,14 @@ desired effect
           <!-- small box -->
           <div class="small-box bg-green">
             <div class="inner">
-              <h3>53<sup style="font-size: 20px">%</sup></h3>
+              <h3 id="promedio_clases">0<sup style="font-size: 20px">%</sup></h3>
 
               <p>TASA DE OCUPACIÓN</p>
             </div>
             <div class="icon">
-              <i class="ion ion-stats-bars"></i>
+              <i class="ion ion-pie-graph"></i>
             </div>
-            <a href="#" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+              <a class="small-box-footer"></a>
           </div>
         </div>
         <!-- ./col -->
@@ -293,9 +295,9 @@ desired effect
               <p>PROFESORES TOTALES</p>
             </div>
             <div class="icon">
-              <i class="ion ion-person-add"></i>
+              <i class="ion ion-ios-body"></i>
             </div>
-            <a href="#" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+            <a class="small-box-footer"></a>
           </div>
         </div>
         <!-- ./col -->
@@ -303,14 +305,14 @@ desired effect
           <!-- small box -->
           <div class="small-box bg-red">
             <div class="inner">
-              <h3>65</h3>
+              <h3 id="num_cam">0</h3>
 
-              <p>TOTAL ASISTENCIAS MES</p>
+              <p>TOTAL CÁMARAS</p>
             </div>
             <div class="icon">
-              <i class="ion ion-pie-graph"></i>
+              <i class="ion ion-ios-videocam"></i>
             </div>
-            <a href="#" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+            <a class="small-box-footer"></a>
           </div>
         </div>
         <!-- ./col -->
@@ -321,17 +323,19 @@ desired effect
       <div class="box box-info">
         <div class="box-header with-border">
           <h3 class="box-title">Clases por asistencias</h3>
-
+          <br>
+          <button onclick="fnExcelReport();" type="button" class="btn btn-md btn-success" ><i class="fa fa-file-excel-o"></i> Exportar a Excel
+          </button>
           <div class="box-tools pull-right">
             <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
             </button>
-            
+
           </div>
         </div>
         <!-- /.box-header -->
         <div class="box-body">
           <div class="table-responsive">
-            <table class="table no-margin">
+            <table class="table no-margin" id="exportTable">
               <thead>
               <tr>
                 <th>País</th>
@@ -339,7 +343,11 @@ desired effect
                 <th>Ciudad</th>
                 <th>Sede</th>
                 <th>Salón</th>
+                <th>Profesor</th>
                 <th>Clase</th>
+                <th>Días</th>
+                <th>Objetivo</th>
+                <th>Horario</th>
                 <th style="width: 300px">Asistencia</th>
               </tr>
               </thead>
@@ -371,6 +379,9 @@ desired effect
                       <i class="fa fa-calendar"></i>
                     </div>
                     <input type="text" class="form-control pull-right" id="datePicker" value="">
+                    <span class="input-group-btn">
+                      <button onclick="callCreateCharts()" type="button" class="btn btn-default btn-flat"><span class="fa fa-refresh"></span> Cambiar colores</button>
+                    </span>
                   </div>
                   <!-- /.input group -->
                 </div>
@@ -384,7 +395,7 @@ desired effect
 
                 <div class="chart">
                   <!-- Sales Chart Canvas -->
-                  <canvas id="salesChart" width="300" height="200" style="height:  200px;"></canvas>
+                  <canvas id="salesChart" width="300" height="600" style="height:  200px;"></canvas>
                 </div>
                 <!-- /.chart-responsive -->
               </div>
@@ -413,7 +424,7 @@ desired effect
   <!-- /.content-wrapper -->
 
 
-
+<iframe id="txtArea1" style="display:none"></iframe>
 </div>
 <!-- ./wrapper -->
 
@@ -439,6 +450,10 @@ desired effect
 <!-- date-range-picker -->
 <script src="bower_components/moment/min/moment.min.js"></script>
 <script src="bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
+
+
+
+
 <script>
 
 
@@ -466,6 +481,7 @@ desired effect
     var docRefSalon = db.collection('salones')
     var docRefClase = db.collection('clases')
     var docRefProfesor = db.collection('profesores')
+    var docRefCam = db.collection('camaras')
 
     var paisSelected = ""
     var regionSelected = ""
@@ -484,6 +500,8 @@ desired effect
     var queryProfesor = docRefProfesor
 
     var ctx
+    var arrRange = []
+    var arrData = []
 
 
     firebase.auth().onAuthStateChanged(function(user) {
@@ -555,58 +573,84 @@ desired effect
          endDate = end;
 
          var diff = start.diff(end, 'days');
-         console.log("diff",diff)
+         //console.log("diff",diff)
 
-         var arrL = []
-         var arrData = []
+
+
+
+         //var range = $('#datePicker').datarangepicker.getRange();
+         console.log(this);
+
+
+         arrRange = []
          for(i=0; i<diff*-1;i++)
          {
 
-           arrL.push('')
+           arrRange.push(moment.utc(start.format('D MMMM YYYY'),'D MMMM YYYY').add(i,'days').format('D MMMM YYYY'))
          }
 
-         queryClases.get().then(function(querySnapshot) {
-
-             querySnapshot.forEach(function(doc) {
-
-                 var _title = doc.data().nombre
-                 var _arr = doc.data().asistencias
-
-                 var arr2 = []
-                 if(_arr)
-                 {
-                   for(var i=0; i<_arr.length; i++)
-                   {
-                       arr2.push(_arr[i].promedio)
-                   }
-                 }
-
-
-                 var color = getRandomColor()
-
-                 var obj = {
-                   label               : _title,
-                   fillColor           : color,
-                   data                : arr2,
-                   backgroundColor: color,
-                 }
-
-                 arrData.push(obj)
-
-             });
-
-             arrL[0] = start.format('D MMMM YYYY');
-             arrL[arrL.length-1] = end.format('D MMMM YYYY');
-
-             console.log(arrData);
-             createChart(arrL, arrData)
-
-         });
-
-
+         callCreateCharts()
 
 
        })
+    }
+
+
+
+    function callCreateCharts()
+    {
+      queryClases.get().then(function(querySnapshot)
+      {
+          arrData=[]
+          var numDay=0
+          querySnapshot.forEach(function(doc)
+          {
+
+              var arrP = []
+              var arrD = []
+
+              var _title = doc.data().nombre
+              var _arr = doc.data().asistencia
+
+
+              if(_arr)
+              {
+                for(var i=0; i<arrRange.length; i++)
+                {
+                    var _d = _arr[0].fecha.seconds
+                    arrD.push(_arr[0].fecha)
+                    if(arrRange[i] == moment.utc(_d*1000).format('D MMMM YYYY') )
+                    {
+                        arrP.push(_arr[0].promedio)
+                    }else{
+                      arrP.push(0)
+                    }
+
+                }
+              }
+
+
+              var color = getRandomColor()
+
+              var obj = {
+                label               : _title,
+                fillColor           : color,
+                data                : arrP,
+                date                : arrD,
+                backgroundColor: color,
+              }
+              numDay++
+              arrData.push(obj)
+
+          });
+
+          //arrL[0] = start.format('D MMMM YYYY');
+          //arrL[arrL.length-1] = end.format('D MMMM YYYY');
+
+          //console.log(arrData);
+          createChart(arrRange, arrData)
+
+      });
     }
 
     function createChart(_arrLabels, _arrDatasets)
@@ -632,7 +676,7 @@ desired effect
                 ticks: {
                             beginAtZero: true,
                             steps: 20,
-                            stepValue: 5,
+                            stepValue: 1,
                             max: 50
                         }
             }]
@@ -719,6 +763,17 @@ desired effect
           $(this).val('');
       });
 
+      //load cameras
+      docRefCam.get().then(function(querySnapshot) {
+        numCam=0
+          querySnapshot.forEach(function(doc) {
+            numCam++
+            $('#num_cam').html(numCam)
+
+          });
+      });
+
+
 
 
 
@@ -785,6 +840,28 @@ desired effect
             });
 
         });
+
+
+        docRefClase.where("pais", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
+          $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+
+                var _title = doc.data().nombre
+                var _timeS = doc.data().h_inicio
+                var _timeF = doc.data().h_final
+
+                var _fullTitle = _title + " de (" + _timeS + "-" + _timeF +")"
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_clase").append(div)
+                //console.log("value: ",$("#item_link").val());
+
+            });
+        });
       });
 
       $('#item_region').on('change', function() {
@@ -829,7 +906,9 @@ desired effect
         .end()
 
         stats()
-        docRefCiudad.where("region", "==", _item_link).get().then(function(querySnapshot) {
+        docRefCiudad.where("region", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
           $("#item_ciudad").append('<option value="noSeleccionado">Selecciona</option>')
             querySnapshot.forEach(function(doc) {
                 // doc.data() is never undefined for queryClases doc snapshots
@@ -845,7 +924,30 @@ desired effect
 
             });
         });
+
+        docRefClase.where("region", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
+          $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+
+                var _title = doc.data().nombre
+                var _timeS = doc.data().h_inicio
+                var _timeF = doc.data().h_final
+
+                var _fullTitle = _title + " de (" + _timeS + "-" + _timeF +")"
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_clase").append(div)
+                //console.log("value: ",$("#item_link").val());
+
+            });
+        });
       });
+
+
 
       $('#item_ciudad').on('change', function() {
         //load cities
@@ -914,6 +1016,27 @@ desired effect
             });
         });
 
+        docRefClase.where("ciudad", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
+          $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc) {
+
+                var _title = doc.data().nombre
+                var _timeS = doc.data().h_inicio
+                var _timeF = doc.data().h_final
+
+                var _fullTitle = _title + " de (" + _timeS + "-" + _timeF +")"
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_clase").append(div)
+                //console.log("value: ",$("#item_link").val());
+
+            });
+        });
+
 
 
       });
@@ -933,7 +1056,8 @@ desired effect
         stats()
       })
 
-      $('#item_sede').on('change', function() {
+      $('#item_sede').on('change', function()
+      {
         //load sedes
         var _item_link = $( "#item_sede option:selected" ).text()
 
@@ -959,7 +1083,9 @@ desired effect
 
         stats()
 
-        docRefSalon.where("sede", "==", _item_link).get().then(function(querySnapshot) {
+        docRefSalon.where("sede", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
           $("#item_salon").append('<option value="noSeleccionado">Selecciona</option>')
             querySnapshot.forEach(function(doc) {
 
@@ -973,10 +1099,37 @@ desired effect
 
             });
         });
+
+
+        docRefClase.where("sede", "==", _item_link)
+        .get()
+        .then(function(querySnapshot)
+        {
+          $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
+            querySnapshot.forEach(function(doc)
+             {
+
+                var _title = doc.data().nombre
+                var _timeS = doc.data().h_inicio
+                var _timeF = doc.data().h_final
+
+                var _fullTitle = _title + " de (" + _timeS + "-" + _timeF +")"
+                var _id = doc.id
+
+                var div = '<option value="'+_id+'">'+_title+'</option>'
+
+                $("#item_clase").append(div)
+                //console.log("value: ",$("#item_link").val());
+
+            });
+        });
+
+
+
       });
 
       $('#item_salon').on('change', function() {
-        //load cities
+
         var _item_link = $( "#item_salon option:selected" ).text()
 
         salonSelected = _item_link
@@ -996,7 +1149,9 @@ desired effect
 
         stats()
 
-        docRefClase.where("salon", "==", _item_link).get().then(function(querySnapshot) {
+        docRefClase.where("salon", "==", _item_link)
+        .get()
+        .then(function(querySnapshot) {
           $("#item_clase").append('<option value="noSeleccionado">Selecciona</option>')
             querySnapshot.forEach(function(doc) {
 
@@ -1016,10 +1171,19 @@ desired effect
         });
       });
 
-      $('#item_clase').on('change', function() {
-        //load cities
-        var _item_link = $( "#item_salon option:selected" ).text()
 
+
+
+      $('#item_clase').on('change', function()
+      {
+
+        $("#bodyTable")
+        .find('td')
+        .remove()
+        .end()
+
+        //load cities
+        var _item_link = $( "#item_clase option:selected" ).text()
 
         claseSelected = _item_link
         stats()
@@ -1030,12 +1194,15 @@ desired effect
       //load info clases
       var numClases
       var numProf
+      var numCam
       function stats()
       {
         numClases = 0
         numProf = 0
+        numCam = 0
         $('#clases_creadas').html(numClases)
         $('#num_profesores').html(numProf)
+        $('#num_cam').html(numCam)
 
 
 
@@ -1069,6 +1236,11 @@ desired effect
           queryClases = docRefClase.where("salon", "==", salonSelected)
         }
 
+        if(claseSelected!="")
+        {
+          queryClases = docRefClase.where("nombre", "==", claseSelected)
+        }
+
 
         if(profesorSelected!="")
         {
@@ -1083,7 +1255,20 @@ desired effect
         else
           docFiltered = queryProfesor
 
+        queryProfesor.get().then(function(querySnapshot){
+          numProf = 0
+          querySnapshot.forEach(function(doc) {
+            numProf++
+            $('#num_profesores').html(numProf)
+          })
+        })
+
+
         queryClases.get().then(function(querySnapshot) {
+          arrData = []
+          var prom = 0
+          var superProm = 0
+
             querySnapshot.forEach(function(doc) {
               numClases++
               $('#clases_creadas').html(numClases)
@@ -1095,19 +1280,38 @@ desired effect
               var _sede = doc.data().sede
               var _salon = doc.data().salon
               var _clase = doc.data().nombre
-              var _arr = doc.data().asistencias
+              var _arr = doc.data().asistencia
+              var _dia = doc.data().diasClase + ""
+              var _timeS = doc.data().h_inicio
+              var _timeF = doc.data().h_final
+              var _prof = doc.data().profesor
+              var _obj = doc.data().objetivo
+              var _hora = _timeS + " - " + _timeF
 
               var arr2 = []
+
+              var txtProm
+
               if(_arr)
               {
                 for(var i=0; i<_arr.length; i++)
                 {
+                    var _tempNum = new Number(_arr[i].promedio)
+                    prom += _tempNum
                     arr2.push(_arr[i].promedio)
 
                 }
+                var _tempNumObjetivo = new Number(doc.data().objetivo)
+                _tempNumObjetivo = _tempNumObjetivo*_arr.length
+                txtProm = Math.round(((prom/_arr.length) / _tempNumObjetivo)*100)
+                //console.log("txtProm",txtProm);
               }
 
-              console.log("_arr",arr2);
+
+              //console.log("prom",txtProm);
+
+              if(txtProm!=undefined)
+                superProm = txtProm
 
               var div = '<tr>\n' +
                   '                            <td>'+_pais+'</td>\n' +
@@ -1115,7 +1319,13 @@ desired effect
                   '                            <td>'+_ciudad+'</td>\n' +
                   '                            <td>'+_sede+'</td>\n' +
                   '                            <td>'+_salon+'</td>\n' +
+                  '                            <td>'+_prof+'</td>\n' +
                   '                            <td>'+_clase+'</td>\n' +
+                  '                            <td>'+_dia+'</td>\n' +
+                  '                            <td>'+_obj+'</td>\n' +
+                  '                            <td>'+_hora+'</td>\n' +
+
+
                   '                            <td>' +
                   '                               <div id="sparkbar'+numClases+'">'+arr2+'</div>'+
                   '                             </td>'+
@@ -1124,15 +1334,64 @@ desired effect
               $("#bodyTable").append(div)
 
               $('#sparkbar'+numClases).sparkline('html', {type: 'bar'})
+
+
+
+
+              var _title = doc.data().nombre
+              var _arr = doc.data().asistencia
+
+              var arrP = []
+              var arrD = []
+              if(_arr)
+              {
+                for(var i=0; i<arrRange.length; i++)
+                {
+                    var _d = _arr[0].fecha.seconds
+                    arrD.push(_arr[0].fecha)
+                    if(arrRange[i] == moment.utc(_d*1000).format('D MMMM YYYY') )
+                    {
+                        arrP.push(_arr[0].promedio)
+                    }else{
+                      arrP.push(0)
+                    }
+
+                }
+              }
+
+
+
+
+              var color = getRandomColor()
+
+              var obj = {
+                label               : _title,
+                fillColor           : color,
+                data                : arrP,
+                date                : arrD,
+                backgroundColor: color,
+              }
+
+              arrData.push(obj)
+
+
             });
+
+
+            //console.log("numClases", numClases);
+            //console.log("superProm", superProm);
+            var promTotal = Math.round(superProm/numClases)
+            if(isNaN(promTotal))
+            {
+              promTotal =0
+            }
+            $('#promedio_clases').html(promTotal+"%")
+            createChart(arrRange, arrData)
         });
 
-        queryProfesor.get().then(function(querySnapshot) {
-            querySnapshot.forEach(function(doc) {
-              numProf++
-              $('#num_profesores').html(numProf)
-            });
-        });
+
+
+
       }
 
 
@@ -1160,9 +1419,53 @@ desired effect
 
 
 
+    function fnExcelReport()
+    {
+
+      var tab_text = '<table border="1px" style="font-size:20px" ">';
+      var textRange;
+      var j = 0;
+      var tab = document.getElementById('exportTable'); // id of table
+      var lines = tab.rows.length;
+
+      // the first headline of the table
+      if (lines > 0) {
+          tab_text = tab_text + '<tr bgcolor="#DFDFDF">' + tab.rows[0].innerHTML + '</tr>';
+      }
+
+      // table data lines, loop starting from 1
+      for (j = 1 ; j < lines; j++) {
+          tab_text = tab_text + "<tr>" + tab.rows[j].innerHTML + "</tr>";
+      }
+
+      tab_text = tab_text + "</table>";
+       //console.log(tab_text); // aktivate so see the result (press F12 in browser)
+
+      var ua = window.navigator.userAgent;
+      var msie = ua.indexOf("MSIE ");
+
+       // if Internet Explorer
+      if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+          txtArea1.document.open("txt/html","replace");
+          txtArea1.document.write(tab_text);
+          txtArea1.document.close();
+          txtArea1.focus();
+          sa = txtArea1.document.execCommand("SaveAs", true, "DataTableExport.xls");
+      }
+      else // other browser not tested on IE 11
+          sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+
+      return (sa);
+
+
+    }
+
+
 
 
 </script>
+
+
 
 <!-- Optionally, you can add Slimscroll and FastClick plugins.
      Both of these plugins are recommended to enhance the
