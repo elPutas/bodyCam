@@ -1453,7 +1453,8 @@ desired effect
           sa = txtArea1.document.execCommand("SaveAs", true, "DataTableExport.xls");
       }
       else // other browser not tested on IE 11
-          sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+          //sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+          sa = window.open('data:application/vnd.ms-excel,' + escape(tab_text));
 
       return (sa);
 
